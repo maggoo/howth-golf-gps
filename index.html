@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d2b0d">
+<title>GolfLine – Howth</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-title" content="GolfLine">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon.svg">
+
+<!-- Android / Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+
+<!-- Prevent phone number detection -->
+<meta name="format-detection" content="telephone=no">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gd:#0d2b0d;--gm:#1a4a1a;--gold:#c9a84c;--goldl:#e8c878;
+  --cream:#f5f0e8;--red:#c0392b;--muted:rgba(245,240,232,.52);
+  --ok:#4ade80;--blue:#3b82f6;
+}
+html,body{height:100%;background:var(--gd);color:var(--cream);font-family:'DM Mono',monospace;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.011) 3px,rgba(255,255,255,.011) 6px),
+  repeating-linear-gradient(0deg,transparent,transparent 8px,rgba(0,0,0,.04) 8px,rgba(0,0,0,.04) 16px);}
+.app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;}
+
+/* ─ HEADER ─ */
+.hdr{padding:11px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.22);flex-shrink:0;}
+.logo{font-family:'Playfair Display',serif;font-size:19px;letter-spacing:.05em;color:var(--gold);line-height:1;}
+.logo span{color:var(--cream);font-weight:400;}
+.cname{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+.gps-ind{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.dot{width:7px;height:7px;border-radius:50%;background:#555;transition:background .4s;}
+.dot.ok{background:var(--ok);animation:pulse 2s infinite;}
+.dot.err{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.82)}}
+.auto-badge{font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.35);color:var(--ok);cursor:pointer;transition:all .2s;}
+.auto-badge.off{border-color:rgba(255,255,255,.15);color:var(--muted);}
+
+/* ─ TABS ─ */
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.tab{flex:1;padding:8px 4px;text-align:center;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* ─ HOLE BAR ─ */
+.hole-bar{padding:7px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.hl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap;}
+.hsel{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;}
+.hsel::-webkit-scrollbar{display:none;}
+.hbtn{min-width:27px;height:27px;border-radius:50%;border:1.5px solid rgba(201,168,76,.28);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hbtn.active{background:var(--gold);border-color:var(--gold);color:var(--gd);font-weight:500;}
+.hbtn.done{border-color:rgba(74,222,128,.4);color:var(--ok);}
+.hbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
+
+/* ─ HOLE INFO ─ */
+.hinfo{padding:5px 16px;display:flex;gap:11px;align-items:center;background:rgba(255,255,255,.022);border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.hi{display:flex;flex-direction:column;gap:1px;}
+.hiv{font-family:'Playfair Display',serif;font-size:14px;color:var(--cream);line-height:1;}
+.hiv.g{color:var(--gold);}
+.hil{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.hsep{width:1px;height:22px;background:rgba(255,255,255,.1);}
+.hname{font-size:10px;color:var(--muted);flex:1;text-align:right;font-style:italic;}
+
+/* ─ PANELS ─ */
+.panel{flex:1;display:none;flex-direction:column;overflow:hidden;}
+.panel.show{display:flex;}
+
+/* ═══ GPS PANEL ═══ */
+.gps-panel{align-items:center;justify-content:center;padding:10px 16px;gap:11px;}
+
+.ring-wrap{position:relative;width:178px;height:178px;flex-shrink:0;}
+.ring-svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:3;}
+.ring-arc{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 6px rgba(201,168,76,.5));}
+.ring-inner{position:absolute;inset:13px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1e4a1e,#0a1f0a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 2px 18px rgba(0,0,0,.4);}
+.dv{font-family:'Playfair Display',serif;font-size:46px;line-height:1;color:var(--cream);letter-spacing:-.02em;transition:all .4s;}
+.dv.loading{color:var(--muted);animation:flicker 1.5s infinite;}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.35}}
+.du{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
+.ds{font-size:9px;color:var(--muted);margin-top:1px;}
+.flagsvg{position:absolute;bottom:17px;right:17px;width:19px;height:19px;opacity:.9;}
+
+.tee-row{display:flex;gap:6px;width:100%;}
+.tc{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:7px 5px;text-align:center;cursor:pointer;transition:all .2s;}
+.tc.active{border-color:var(--gold);background:rgba(201,168,76,.09);}
+.tdot{width:8px;height:8px;border-radius:50%;margin:0 auto 3px;}
+.tdot.white{background:#e8e8e8;}.tdot.yellow{background:#f5c842;}.tdot.red{background:var(--red);}
+.tdist{font-family:'Playfair Display',serif;font-size:13px;color:var(--cream);line-height:1;}
+.tlbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px;}
+
+.utog{display:flex;background:rgba(255,255,255,.05);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.08);}
+.ubtn{padding:5px 14px;border-radius:17px;border:none;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.ubtn.active{background:var(--gold);color:var(--gd);font-weight:500;}
+
+.acts{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+.brow{display:flex;gap:6px;width:100%;}
+.pbtn{flex:1;padding:11px 8px;border-radius:10px;border:2px solid var(--gold);background:var(--gold);color:var(--gd);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.pbtn:hover{background:var(--goldl);border-color:var(--goldl);transform:translateY(-1px);}
+.pbtn.sec{background:transparent;color:var(--gold);border-color:rgba(201,168,76,.35);}
+.pbtn.sec:hover{background:rgba(201,168,76,.08);border-color:var(--gold);transform:none;}
+.pbtn:disabled{opacity:.38;cursor:not-allowed;transform:none;}
+.smsg{font-size:10px;color:var(--muted);letter-spacing:.05em;text-align:center;min-height:14px;transition:color .3s;}
+.smsg.ok{color:var(--ok);}.smsg.err{color:#f87171;}
+
+/* ═══ MAP PANEL ═══ */
+.map-panel{position:relative;}
+#map{flex:1;width:100%;background:#0f2b0f;}
+.map-status{position:absolute;top:9px;left:50%;transform:translateX(-50%);background:rgba(10,22,10,.9);border:1px solid rgba(201,168,76,.4);border-radius:20px;padding:4px 13px;font-size:10px;color:var(--gold);z-index:1000;letter-spacing:.05em;backdrop-filter:blur(8px);white-space:nowrap;transition:opacity .6s;}
+.map-ov{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:7px;z-index:1000;pointer-events:none;}
+.moc{background:rgba(8,18,8,.9);border:1px solid rgba(201,168,76,.5);border-radius:9px;padding:7px 10px;backdrop-filter:blur(8px);pointer-events:all;flex:1;}
+.mot{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:2px;}
+.mov{font-family:'Playfair Display',serif;font-size:17px;color:var(--cream);line-height:1;}
+.mos{font-size:8px;color:var(--muted);margin-top:1px;}
+
+/* ═══ SCORECARD PANEL ═══ */
+.score-panel{overflow-y:auto;padding:0 0 16px;}
+.sc-hdr{padding:10px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:var(--gd);z-index:10;flex-shrink:0;}
+.sc-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
+.sc-totals{display:flex;gap:12px;}
+.sct{text-align:center;}
+.sct-v{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);}
+.sct-l{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.sc-table{width:100%;border-collapse:collapse;}
+.sc-table th{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);}
+.sc-table td{padding:5px 6px;text-align:center;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);}
+.sc-table tr.active-row td{background:rgba(201,168,76,.08);}
+.sc-table tr:hover td{background:rgba(255,255,255,.03);}
+.sc-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--muted);}
+.sc-par{color:var(--gold);font-size:11px;}
+.sc-name{font-size:9px;color:var(--muted);font-style:italic;text-align:left;padding-left:10px;}
+.score-input{width:32px;height:28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--cream);font-family:'Playfair Display',serif;font-size:14px;text-align:center;outline:none;transition:border .2s;-moz-appearance:textfield;}
+.score-input::-webkit-outer-spin-button,.score-input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.score-input:focus{border-color:var(--gold);}
+.score-input.eagle{border-color:#fbbf24;color:#fbbf24;}
+.score-input.birdie{border-color:var(--ok);color:var(--ok);}
+.score-input.par-s{border-color:rgba(255,255,255,.3);color:var(--cream);}
+.score-input.bogey{border-color:#fb923c;color:#fb923c;}
+.score-input.dbogey{border-color:var(--red);color:var(--red);}
+.sc-diff{font-size:10px;font-weight:500;}
+.sc-diff.neg{color:var(--ok);}.sc-diff.pos{color:#fb923c;}.sc-diff.zero{color:var(--muted);}
+.sc-nine{background:rgba(255,255,255,.03);}
+.sc-nine td{padding:6px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+.sc-nine .nine-v{font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);}
+.reset-btn{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:8px;border:1px solid rgba(201,168,76,.35);background:transparent;color:var(--gold);cursor:pointer;transition:all .2s;}
+.reset-btn:hover{background:rgba(201,168,76,.1);}
+
+/* ─ AUTO-ADVANCE MODAL ─ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-bg.show{opacity:1;pointer-events:all;}
+.modal{background:linear-gradient(145deg,#0f2e0f,#0a1f0a);border:1px solid var(--gold);border-radius:16px;padding:24px 20px;max-width:300px;width:90%;text-align:center;}
+.modal-icon{font-size:36px;margin-bottom:10px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);margin-bottom:6px;}
+.modal-sub{font-size:11px;color:var(--muted);letter-spacing:.04em;line-height:1.6;margin-bottom:18px;}
+.modal-btns{display:flex;gap:8px;}
+.mbtn{flex:1;padding:11px;border-radius:10px;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.mbtn.confirm{background:var(--gold);color:var(--gd);font-weight:500;}
+.mbtn.cancel{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(8,18,8,.95);border:1px solid var(--gold);border-radius:11px;padding:8px 16px;font-size:11px;color:var(--gold);letter-spacing:.04em;backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* Leaflet custom markers */
+.me-dot{width:14px;height:14px;background:var(--ok);border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 10px rgba(74,222,128,.6);}
+.pin-dot{width:14px;height:14px;background:var(--red);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;}
+.hole-lbl{background:rgba(192,57,43,.9);color:#fff;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div>
+      <div class="logo">Golf<span>Line</span></div>
+      <div class="cname">Howth Golf Club · Dublin</div>
+    </div>
+    <div class="hdr-r">
+      <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ▸</div>
+      <div class="gps-ind"><div class="dot" id="gpsDot"></div><span id="gpsLbl">GPS</span></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tGps" onclick="showTab('gps')">📍 GPS</div>
+    <div class="tab" id="tMap" onclick="showTab('map')">🗺 Map</div>
+    <div class="tab" id="tCard" onclick="showTab('card')">📋 Card</div>
+  </div>
+
+  <!-- HOLE BAR -->
+  <div class="hole-bar">
+    <div class="hl">Hole</div>
+    <div class="hsel" id="hSel"></div>
+  </div>
+
+  <!-- HOLE INFO -->
+  <div class="hinfo">
+    <div class="hi"><div class="hiv" id="iH">1</div><div class="hil">Hole</div></div>
+    <div class="hsep"></div>
+    <div class="hi"><div class="hiv g" id="iP">4</div><div class="hil">Par</div></div>
+    <div class="hsep"></div>
+    <div class="hi"><div class="hiv" id="iI">13</div><div class="hil">S.I.</div></div>
+    <div class="hsep"></div>
+    <div class="hi"><div class="hiv" id="iToPar" style="font-size:12px">E</div><div class="hil">vs Par</div></div>
+    <div class="hname" id="iN">Ireland's Eye</div>
+  </div>
+
+  <!-- GPS PANEL -->
+  <div class="panel gps-panel show" id="panelGps">
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 178 178">
+        <circle class="ring-bg" cx="89" cy="89" r="80"/>
+        <circle class="ring-arc" id="ringArc" cx="89" cy="89" r="80"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="dv loading" id="dVal">—</div>
+        <div class="du" id="dUnit">metres</div>
+        <div class="ds" id="dSub">to pin</div>
+      </div>
+      <svg class="flagsvg" viewBox="0 0 24 24" fill="none">
+        <line x1="5" y1="2" x2="5" y2="22" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M5 2 L18 8 L5 14" fill="#c0392b" stroke="#c0392b" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="tee-row">
+      <div class="tc active" id="tcW" onclick="selTee('white')"><div class="tdot white"></div><div class="tdist" id="dW">—</div><div class="tlbl">White</div></div>
+      <div class="tc" id="tcY" onclick="selTee('yellow')"><div class="tdot yellow"></div><div class="tdist" id="dY">—</div><div class="tlbl">Yellow</div></div>
+      <div class="tc" id="tcR" onclick="selTee('red')"><div class="tdot red"></div><div class="tdist" id="dR">—</div><div class="tlbl">Red</div></div>
+    </div>
+
+    <div class="utog">
+      <button class="ubtn active" id="bM" onclick="setUnit('metres')">Metres</button>
+      <button class="ubtn" id="bY" onclick="setUnit('yards')">Yards</button>
+    </div>
+
+    <div class="acts">
+      <div class="brow">
+        <button class="pbtn" onclick="setPin()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></svg>
+          Mark Pin
+        </button>
+        <button class="pbtn sec" id="clrBtn" onclick="clearPin()" disabled>Clear</button>
+        <button class="pbtn sec" onclick="nextHole()">Next ▸</button>
+      </div>
+      <div class="smsg" id="sMsg">Enable GPS to begin</div>
+    </div>
+  </div>
+
+  <!-- MAP PANEL -->
+  <div class="panel map-panel" id="panelMap">
+    <div class="map-status" id="mapSt">Loading course data…</div>
+    <div id="map"></div>
+    <div class="map-ov">
+      <div class="moc">
+        <div class="mot">To Pin</div>
+        <div class="mov" id="mDist">—</div>
+        <div class="mos" id="mSub">mark pin first</div>
+      </div>
+      <div class="moc">
+        <div class="mot">Hole</div>
+        <div class="mov" id="mHole">1</div>
+        <div class="mos" id="mPar">Par 4</div>
+      </div>
+      <div class="moc" style="flex:.8;cursor:pointer;" onclick="centerMe()">
+        <div class="mot">Me</div>
+        <div class="mov">📍</div>
+        <div class="mos">Centre</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORECARD PANEL -->
+  <div class="panel score-panel" id="panelCard">
+    <div class="sc-hdr">
+      <div class="sc-title">Scorecard</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="sc-totals">
+          <div class="sct"><div class="sct-v" id="totScore">—</div><div class="sct-l">Score</div></div>
+          <div class="sct"><div class="sct-v" id="totPar" style="color:var(--gold)">71</div><div class="sct-l">Par</div></div>
+          <div class="sct"><div class="sct-v" id="totDiff">E</div><div class="sct-l">+/-</div></div>
+        </div>
+        <button class="reset-btn" onclick="resetScores()">Reset</button>
+      </div>
+    </div>
+    <table class="sc-table">
+      <thead>
+        <tr>
+          <th style="width:24px">#</th>
+          <th style="text-align:left;padding-left:10px">Hole</th>
+          <th>Par</th>
+          <th>S.I.</th>
+          <th>Score</th>
+          <th>+/-</th>
+        </tr>
+      </thead>
+      <tbody id="scBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- AUTO-ADVANCE MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-icon">⛳</div>
+    <div class="modal-title">Hole Complete?</div>
+    <div class="modal-sub" id="modalSub">You're near the green.<br>Advance to hole <span id="modalNext">2</span>?</div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="dismissModal()">Stay</button>
+      <button class="mbtn confirm" onclick="confirmNextHole()">Next Hole</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// COURSE DATA
+// ─────────────────────────────────────────────────────────────────────────────
+const HOLES = [
+  {w:338,y:328,r:315,par:4,hdcp:13,name:"Ireland's Eye"},
+  {w:340,y:326,r:305,par:4,hdcp:7, name:"Carrickbrack"},
+  {w:441,y:420,r:410,par:4,hdcp:1, name:"The Summit"},
+  {w:170,y:156,r:149,par:3,hdcp:11,name:"The Pines"},
+  {w:443,y:370,r:347,par:4,hdcp:3, name:"Cardiac Hill"},
+  {w:309,y:290,r:246,par:4,hdcp:15,name:"The Heathers"},
+  {w:523,y:517,r:441,par:5,hdcp:5, name:"The Long"},
+  {w:170,y:147,r:127,par:3,hdcp:9, name:"The Pond"},
+  {w:278,y:270,r:227,par:4,hdcp:17,name:"The Short"},
+  {w:337,y:326,r:305,par:4,hdcp:8, name:"The Valley"},
+  {w:348,y:339,r:331,par:4,hdcp:4, name:"The Hill"},
+  {w:498,y:493,r:443,par:5,hdcp:16,name:"The Long Par 5"},
+  {w:423,y:416,r:351,par:4,hdcp:2, name:"The Dog Leg"},
+  {w:364,y:355,r:347,par:4,hdcp:14,name:"The Bay View"},
+  {w:159,y:147,r:138,par:3,hdcp:18,name:"The Short Par 3"},
+  {w:323,y:316,r:248,par:4,hdcp:10,name:"The Sea View"},
+  {w:394,y:367,r:328,par:4,hdcp:6, name:"The Panorama"},
+  {w:378,y:363,r:348,par:4,hdcp:12,name:"The Finish"},
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let pos=null, pin=null, unit='metres', hole=0, tee='white';
+let autoAdvance=true, modalPending=false, lastAutoPrompt=-1;
+let scores = new Array(18).fill(null);
+let map=null, meMarker=null, pinMarker=null, routeLine=null;
+let osmGreens={}, osmTees={};
+const CIRC=503; // 2π×80
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUILD UI
+// ─────────────────────────────────────────────────────────────────────────────
+const hSel=document.getElementById('hSel');
+for(let i=0;i<18;i++){
+  const b=document.createElement('button');
+  b.className='hbtn'+(i===0?' active':'');
+  b.textContent=i+1; b.id='hb'+i;
+  b.onclick=()=>selHole(i);
+  hSel.appendChild(b);
+}
+
+// Build scorecard rows
+const scBody=document.getElementById('scBody');
+HOLES.forEach((h,i)=>{
+  // Nine-hole summary row
+  if(i===9){
+    const sr=document.createElement('tr');
+    sr.className='sc-nine';
+    sr.innerHTML=`<td colspan="4" style="text-align:left;padding-left:10px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Front 9</td><td><span class="nine-v" id="f9score">—</span></td><td><span class="nine-v" id="f9diff">—</span></td>`;
+    scBody.appendChild(sr);
+  }
+  const tr=document.createElement('tr');
+  tr.id='row'+i;
+  tr.innerHTML=`
+    <td class="sc-num">${i+1}</td>
+    <td class="sc-name">${h.name}</td>
+    <td class="sc-par">${h.par}</td>
+    <td style="font-size:10px;color:var(--muted)">${h.hdcp}</td>
+    <td><input class="score-input" id="si${i}" type="number" min="1" max="15" placeholder="—"
+      oninput="scoreEntry(${i},this)" onfocus="this.select()"></td>
+    <td><span class="sc-diff" id="sd${i}">—</span></td>`;
+  scBody.appendChild(tr);
+});
+const br=document.createElement('tr');
+br.className='sc-nine';
+br.innerHTML=`<td colspan="4" style="text-align:left;padding-left:10px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Back 9</td><td><span class="nine-v" id="b9score">—</span></td><td><span class="nine-v" id="b9diff">—</span></td>`;
+scBody.appendChild(br);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOLE SELECTION
+// ─────────────────────────────────────────────────────────────────────────────
+function selHole(idx,quiet=false){
+  hole=idx;
+  const h=HOLES[idx];
+  document.querySelectorAll('.hbtn').forEach((b,i)=>{
+    b.classList.toggle('active',i===idx);
+  });
+  document.getElementById('iH').textContent=idx+1;
+  document.getElementById('iP').textContent=h.par;
+  document.getElementById('iI').textContent=h.hdcp;
+  document.getElementById('iN').textContent=h.name;
+  document.getElementById('mHole').textContent=idx+1;
+  document.getElementById('mPar').textContent='Par '+h.par;
+  updTeeCards(); updToParDisplay();
+  if(!quiet){
+    pin=null;
+    document.getElementById('clrBtn').disabled=true;
+    resetRing();
+    if(pinMarker){map&&map.removeLayer(pinMarker);pinMarker=null;}
+    if(routeLine){map&&map.removeLayer(routeLine);routeLine=null;}
+    if(pos) setStatus('GPS locked · Mark the pin to measure','ok');
+    showToast(`Hole ${idx+1} · ${h.name} · Par ${h.par}`);
+  }
+  // Scroll scorecard row into view
+  const row=document.getElementById('row'+idx);
+  if(row) row.scrollIntoView({behavior:'smooth',block:'center'});
+  document.querySelectorAll('#scBody tr[id^="row"]').forEach((r,i)=>r.classList.toggle('active-row',i===idx));
+  // Pan map
+  if(map&&osmGreens[idx+1]) map.setView([osmGreens[idx+1].lat,osmGreens[idx+1].lng],17);
+}
+
+function nextHole(){
+  if(hole<17) selHole(hole+1);
+  else showToast('🏁 Round complete!');
+}
+
+function updTeeCards(){
+  const h=HOLES[hole];
+  const f=m=>unit==='metres'?m+'m':Math.round(m*1.09361)+'y';
+  document.getElementById('dW').textContent=f(h.w);
+  document.getElementById('dY').textContent=f(h.y);
+  document.getElementById('dR').textContent=f(h.r);
+}
+function selTee(t){
+  tee=t;
+  ['white','yellow','red'].forEach(x=>{
+    document.getElementById('tc'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===t);
+  });
+}
+function setUnit(u){
+  unit=u;
+  document.getElementById('bM').classList.toggle('active',u==='metres');
+  document.getElementById('bY').classList.toggle('active',u==='yards');
+  document.getElementById('dUnit').textContent=u;
+  updTeeCards(); updDist();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GPS
+// ─────────────────────────────────────────────────────────────────────────────
+function startGPS(){
+  if(!navigator.geolocation){setStatus('GPS not supported','err');return;}
+  setStatus('Acquiring GPS…','');
+  navigator.geolocation.watchPosition(p=>{
+    pos={lat:p.coords.latitude,lng:p.coords.longitude};
+    document.getElementById('gpsDot').className='dot ok';
+    if(!pin) setStatus('GPS locked · Mark the pin to measure','ok');
+    updDist();
+    updateMeOnMap();
+    checkAutoAdvance();
+  },err=>{
+    document.getElementById('gpsDot').className='dot err';
+    setStatus({1:'Location denied',2:'GPS lost',3:'Timeout'}[err.code]||'GPS error','err');
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:2000});
+}
+
+function setPin(){
+  if(!pos){showToast('Waiting for GPS…');return;}
+  pin={...pos};
+  document.getElementById('clrBtn').disabled=false;
+  setStatus('Pin marked · Walk to your ball','ok');
+  showToast('📍 Pin saved — Hole '+(hole+1));
+  if(map){
+    if(pinMarker) map.removeLayer(pinMarker);
+    pinMarker=L.marker([pin.lat,pin.lng],{icon:mkIcon('pin-dot',14)}).addTo(map).bindPopup('Pin H'+(hole+1));
+  }
+  updDist();
+}
+function clearPin(){
+  pin=null;
+  document.getElementById('clrBtn').disabled=true;
+  if(pinMarker){map&&map.removeLayer(pinMarker);pinMarker=null;}
+  if(routeLine){map&&map.removeLayer(routeLine);routeLine=null;}
+  resetRing();
+  setStatus('Pin cleared','');
+}
+function resetRing(){
+  document.getElementById('dVal').textContent='—';
+  document.getElementById('dVal').className='dv loading';
+  document.getElementById('dSub').textContent='to pin';
+  document.getElementById('ringArc').style.strokeDashoffset=CIRC;
+  document.getElementById('mDist').textContent='—';
+  document.getElementById('mSub').textContent='mark pin first';
+}
+
+function hvs(a,b){
+  const R=6371000,r=x=>x*Math.PI/180;
+  const dL=r(b.lat-a.lat),dO=r(b.lng-a.lng);
+  const x=Math.sin(dL/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function updDist(){
+  if(!pos||!pin) return;
+  const m=hvs(pos,pin);
+  const d=unit==='metres'?Math.round(m):Math.round(m*1.09361);
+  const el=document.getElementById('dVal');
+  el.textContent=d; el.className='dv';
+  document.getElementById('ringArc').style.strokeDashoffset=CIRC-CIRC*Math.min(m/460,1);
+  const sub=m<20?'At the pin!':m<46?'Almost there!':m<91?'Short iron':m<137?'Mid iron':m<183?'Long iron':'Driver territory';
+  document.getElementById('dSub').textContent=sub;
+  document.getElementById('mDist').textContent=d+(unit==='metres'?'m':'y');
+  document.getElementById('mSub').textContent=sub;
+  setStatus('Updated · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),'ok');
+  // Draw route line
+  if(map){
+    if(routeLine) map.removeLayer(routeLine);
+    routeLine=L.polyline([[pos.lat,pos.lng],[pin.lat,pin.lng]],{
+      color:m<50?'#4ade80':'#c9a84c',weight:2.5,dashArray:'6 5',opacity:.85
+    }).addTo(map);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTO-ADVANCE
+// ─────────────────────────────────────────────────────────────────────────────
+const AUTO_RADIUS=30; // metres — prompt when within 30m of green centre
+let autoEnabled=true;
+
+function toggleAuto(){
+  autoEnabled=!autoEnabled;
+  const b=document.getElementById('autoBadge');
+  b.textContent=autoEnabled?'AUTO ▸':'AUTO ○';
+  b.classList.toggle('off',!autoEnabled);
+  showToast(autoEnabled?'Auto-advance ON':'Auto-advance OFF');
+}
+
+function checkAutoAdvance(){
+  if(!autoEnabled||!pos||modalPending) return;
+  // Check distance to known green centre from OSM
+  const greenPos=osmGreens[hole+1];
+  if(!greenPos) return;
+  const d=hvs(pos,greenPos);
+  if(d<AUTO_RADIUS && lastAutoPrompt!==hole){
+    lastAutoPrompt=hole;
+    modalPending=true;
+    document.getElementById('modalNext').textContent=hole+2;
+    document.getElementById('modalSub').innerHTML=`You're ${Math.round(d)}m from the green.<br>Advance to hole <b>${hole+2}</b>?`;
+    document.getElementById('modalBg').classList.add('show');
+  }
+}
+
+function confirmNextHole(){
+  dismissModal();
+  nextHole();
+}
+function dismissModal(){
+  document.getElementById('modalBg').classList.remove('show');
+  modalPending=false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCORECARD
+// ─────────────────────────────────────────────────────────────────────────────
+function scoreEntry(idx,input){
+  const v=parseInt(input.value);
+  if(isNaN(v)||v<1){scores[idx]=null;}
+  else{scores[idx]=v;}
+  // Colour-code
+  input.className='score-input';
+  if(scores[idx]!==null){
+    const diff=scores[idx]-HOLES[idx].par;
+    if(diff<=-2) input.classList.add('eagle');
+    else if(diff===-1) input.classList.add('birdie');
+    else if(diff===0) input.classList.add('par-s');
+    else if(diff===1) input.classList.add('bogey');
+    else input.classList.add('dbogey');
+    // Mark hole button done
+    document.getElementById('hb'+idx).classList.add('done');
+  } else {
+    document.getElementById('hb'+idx).classList.remove('done');
+  }
+  updScoreTotals();
+  updToParDisplay();
+}
+
+function updScoreTotals(){
+  let total=0,totalPar=0,count=0;
+  let f9s=0,f9p=0,f9c=0,b9s=0,b9p=0,b9c=0;
+  scores.forEach((s,i)=>{
+    const p=HOLES[i].par;
+    const diff=document.getElementById('sd'+i);
+    if(s!==null){
+      const d=s-p;
+      diff.textContent=(d>0?'+':'')+d;
+      diff.className='sc-diff'+(d<0?' neg':d>0?' pos':' zero');
+      total+=s; totalPar+=p; count++;
+      if(i<9){f9s+=s;f9p+=p;f9c++;}
+      else{b9s+=s;b9p+=p;b9c++;}
+    } else {
+      diff.textContent='—'; diff.className='sc-diff';
+    }
+  });
+  const ts=document.getElementById('totScore');
+  ts.textContent=count>0?total:'—';
+  const td=document.getElementById('totDiff');
+  if(count>0){
+    const d=total-totalPar;
+    td.textContent=(d>0?'+':d<0?'':'')+d;
+    td.style.color=d<0?'var(--ok)':d>0?'#fb923c':'var(--muted)';
+  } else { td.textContent='E'; td.style.color='var(--muted)'; }
+  // Nine summaries
+  if(f9c>0){
+    document.getElementById('f9score').textContent=f9s;
+    const d=f9s-f9p; document.getElementById('f9diff').textContent=(d>=0?'+':'')+d;
+  } else { document.getElementById('f9score').textContent='—'; document.getElementById('f9diff').textContent='—'; }
+  if(b9c>0){
+    document.getElementById('b9score').textContent=b9s;
+    const d=b9s-b9p; document.getElementById('b9diff').textContent=(d>=0?'+':'')+d;
+  } else { document.getElementById('b9score').textContent='—'; document.getElementById('b9diff').textContent='—'; }
+}
+
+function updToParDisplay(){
+  let total=0,par=0,any=false;
+  scores.forEach((s,i)=>{if(s!==null){total+=s;par+=HOLES[i].par;any=true;}});
+  const el=document.getElementById('iToPar');
+  if(!any){el.textContent='E';el.style.color='var(--muted)';return;}
+  const d=total-par;
+  el.textContent=(d>0?'+':'')+d||'E';
+  el.style.color=d<0?'var(--ok)':d>0?'#fb923c':'var(--muted)';
+}
+
+function resetScores(){
+  scores=new Array(18).fill(null);
+  document.querySelectorAll('.score-input').forEach(i=>{i.value='';i.className='score-input';});
+  document.querySelectorAll('.sc-diff').forEach(e=>{e.textContent='—';e.className='sc-diff';});
+  document.querySelectorAll('.hbtn').forEach(b=>b.classList.remove('done'));
+  ['f9score','f9diff','b9score','b9diff'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('totScore').textContent='—';
+  document.getElementById('totDiff').textContent='E';
+  updToParDisplay();
+  showToast('Scorecard reset');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAP
+// ─────────────────────────────────────────────────────────────────────────────
+function mkIcon(cls,sz){
+  return L.divIcon({className:'',html:`<div class="${cls}" style="width:${sz}px;height:${sz}px"></div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+}
+
+function initMap(){
+  if(map) return;
+  map=L.map('map',{zoomControl:false,attributionControl:false}).setView([53.3755,-6.0884],15);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20}).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,opacity:.55}).addTo(map);
+  // Zoom control bottom-right
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  fetchOSM();
+}
+
+async function fetchOSM(){
+  const q=`[out:json][timeout:30];(node["golf"](53.368,-6.102,53.383,-6.070);way["golf"](53.368,-6.102,53.383,-6.070););out body geom;`;
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
+    const d=await r.json();
+    renderOSM(d.elements);
+    document.getElementById('mapSt').textContent=`${d.elements.length} features loaded`;
+    setTimeout(()=>document.getElementById('mapSt').style.opacity='0',2500);
+  }catch(e){
+    document.getElementById('mapSt').textContent='OSM load failed – satellite only';
+  }
+}
+
+function centroid(geom){
+  if(!geom||!geom.length) return null;
+  return{lat:geom.reduce((s,n)=>s+n.lat,0)/geom.length,lng:geom.reduce((s,n)=>s+n.lon,0)/geom.length};
+}
+
+function renderOSM(els){
+  const cols={fairway:'#3a8a3a',green:'#22c55e',rough:'#1a5c1a',bunker:'#c9a84c',tee:'#86efac',water_hazard:'#3b82f6',hole:'#2d6a2d'};
+  const ops={fairway:.35,green:.6,rough:.22,bunker:.65,tee:.5,water_hazard:.55,hole:.25};
+  els.forEach(el=>{
+    const g=el.tags&&el.tags.golf; if(!g) return;
+    const ref=el.tags&&(el.tags.ref||el.tags['ref:hole']);
+    if(el.type==='way'&&el.geometry&&el.geometry.length>2){
+      const ll=el.geometry.map(p=>[p.lat,p.lon]);
+      L.polygon(ll,{color:'rgba(255,255,255,.12)',weight:1,fillColor:cols[g]||'#4a9a4a',fillOpacity:ops[g]||.3})
+        .addTo(map).bindPopup(`<b style="color:#c9a84c">${g}</b>${ref?' · Hole '+ref:''}`);
+      const c=centroid(el.geometry);
+      if(c){
+        if(g==='green'&&ref){
+          osmGreens[parseInt(ref)]=c;
+          L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${ref}</div>`,iconSize:[17,17],iconAnchor:[8.5,8.5]})}).addTo(map);
+        }
+        if(g==='tee'&&ref) osmTees[parseInt(ref)]=c;
+      }
+    }
+    if(el.type==='node'&&g==='tee'&&ref) osmTees[parseInt(ref)]={lat:el.lat,lng:el.lon};
+  });
+  if(osmGreens[1]) map.setView([osmGreens[1].lat,osmGreens[1].lng],16);
+  if(pos&&!meMarker) meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');
+}
+
+function updateMeOnMap(){
+  if(!map||!pos) return;
+  if(!meMarker) meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');
+  else meMarker.setLatLng([pos.lat,pos.lng]);
+  // Redraw route line if pin set
+  if(pin){
+    if(routeLine) map.removeLayer(routeLine);
+    const m=hvs(pos,pin);
+    routeLine=L.polyline([[pos.lat,pos.lng],[pin.lat,pin.lng]],{color:m<50?'#4ade80':'#c9a84c',weight:2.5,dashArray:'6 5',opacity:.85}).addTo(map);
+  }
+}
+
+function centerMe(){
+  if(map&&pos) map.setView([pos.lat,pos.lng],17);
+  else if(map) map.setView([53.3755,-6.0884],15);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────────────────────────────────────
+function showTab(t){
+  ['gps','map','card'].forEach(x=>{
+    document.getElementById('t'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===t);
+    document.getElementById('panel'+x[0].toUpperCase()+x.slice(1)).classList.toggle('show',x===t);
+  });
+  if(t==='map'){initMap();setTimeout(()=>map&&map.invalidateSize(),60);}
+  if(t==='card'){const r=document.getElementById('row'+hole);r&&r.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function setStatus(msg,type){const el=document.getElementById('sMsg');el.textContent=msg;el.className='smsg'+(type?' '+type:'');}
+let tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+selHole(0,true);
+startGPS();
+// Tab alias fixes
+document.getElementById('tGps').id='tGps';
+// Fix tab IDs to match showTab logic
+document.getElementById('tGps').onclick=()=>showTab('gps');
+document.getElementById('tMap').onclick=()=>showTab('map');
+document.getElementById('tCard').onclick=()=>showTab('card');
+document.getElementById('panelGps').id='panelGps';
+document.getElementById('panelMap').id='panelMap';
+document.getElementById('panelCard').id='panelCard';
+</script>
+</body>
+</html>
