@@ -95,6 +95,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .ds{font-size:9px;color:var(--muted);margin-top:1px;}
 .flagsvg{position:absolute;bottom:17px;right:17px;width:19px;height:19px;opacity:.9;}
 
+/* Front / Middle / Back */
+.fmb-row{display:flex;gap:0;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;}
+.fmb-card{flex:1;padding:8px 6px;text-align:center;position:relative;}
+.fmb-mid{border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);background:rgba(201,168,76,.06);}
+.fmb-lbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.fmb-val{font-family:'Playfair Display',serif;font-size:20px;color:var(--cream);line-height:1;}
+.fmb-mid .fmb-val{color:var(--gold);}
+.fmb-mid .fmb-lbl{color:rgba(201,168,76,.7);}
+.pin-active-badge{font-size:8px;letter-spacing:.06em;color:var(--ok);position:absolute;bottom:3px;left:0;right:0;text-align:center;}
+
 .tee-row{display:flex;gap:6px;width:100%;}
 .tc{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:7px 5px;text-align:center;cursor:pointer;transition:all .2s;}
 .tc.active{border-color:var(--gold);background:rgba(201,168,76,.09);}
@@ -231,12 +241,28 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       <div class="ring-inner">
         <div class="dv loading" id="dVal">—</div>
         <div class="du" id="dUnit">metres</div>
-        <div class="ds" id="dSub">to pin</div>
+        <div class="ds" id="dSub">to green</div>
       </div>
       <svg class="flagsvg" viewBox="0 0 24 24" fill="none">
         <line x1="5" y1="2" x2="5" y2="22" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M5 2 L18 8 L5 14" fill="#c0392b" stroke="#c0392b" stroke-linejoin="round"/>
       </svg>
+    </div>
+
+    <!-- Front / Middle / Back -->
+    <div class="fmb-row">
+      <div class="fmb-card">
+        <div class="fmb-lbl">Front</div>
+        <div class="fmb-val" id="fmbF">—</div>
+      </div>
+      <div class="fmb-card fmb-mid">
+        <div class="fmb-lbl">Middle</div>
+        <div class="fmb-val" id="fmbM">—</div>
+      </div>
+      <div class="fmb-card">
+        <div class="fmb-lbl">Back</div>
+        <div class="fmb-val" id="fmbB">—</div>
+      </div>
     </div>
 
     <div class="tee-row">
@@ -252,11 +278,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
     <div class="acts">
       <div class="brow">
-        <button class="pbtn" onclick="setPin()">
+        <button class="pbtn" id="pinBtn" onclick="setPin()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></svg>
-          Mark Pin
+          Pin Exact
         </button>
-        <button class="pbtn sec" id="clrBtn" onclick="clearPin()" disabled>Clear</button>
+        <button class="pbtn sec" id="clrBtn" onclick="clearPin()" disabled>Reset</button>
         <button class="pbtn sec" onclick="nextHole()">Next ▸</button>
       </div>
       <div class="smsg" id="sMsg">Enable GPS to begin</div>
@@ -363,8 +389,69 @@ let pos=null, pin=null, unit='metres', hole=0, tee='white';
 let autoAdvance=true, modalPending=false, lastAutoPrompt=-1;
 let scores = new Array(18).fill(null);
 let map=null, meMarker=null, pinMarker=null, routeLine=null;
-let osmGreens={}, osmTees={};
-const CIRC=503; // 2π×80
+// osmGreens: hole# -> {lat,lng}  (centroid)
+// osmGreenPolygons: hole# -> array of {lat,lng} points (for FMB calc)
+let osmGreens={}, osmTees={}, osmGreenPolygons={};
+const CIRC=503;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HAVERSINE
+// ─────────────────────────────────────────────────────────────────────────────
+function hvs(a,b){
+  const R=6371000,r=x=>x*Math.PI/180;
+  const dL=r(b.lat-a.lat),dO=r(b.lng-a.lng);
+  const x=Math.sin(dL/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function fmt(m){ return unit==='metres'?Math.round(m):Math.round(m*1.09361); }
+function fmtU(m){ return fmt(m)+(unit==='metres'?'m':'y'); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GREEN FRONT / MIDDLE / BACK
+// Given the green polygon points and the player's direction of approach,
+// front = closest edge point, back = farthest, middle = centroid.
+// ─────────────────────────────────────────────────────────────────────────────
+function calcFMB(holeNum){
+  if(!pos) return null;
+  const pts = osmGreenPolygons[holeNum];
+  const centre = osmGreens[holeNum];
+  if(!centre) return null;
+
+  if(pts && pts.length > 2){
+    // Find the point in the polygon closest to player = front edge
+    // Find the point farthest from player = back edge
+    let minD=Infinity, maxD=0;
+    pts.forEach(p=>{
+      const d = hvs(pos, p);
+      if(d < minD) minD = d;
+      if(d > maxD) maxD = d;
+    });
+    const mid = hvs(pos, centre);
+    return { front: minD, mid: mid, back: maxD };
+  }
+  // Fallback: no polygon — estimate ±8m front/back from centre
+  const mid = hvs(pos, centre);
+  return { front: Math.max(0, mid - 8), mid: mid, back: mid + 8 };
+}
+
+function updFMB(){
+  const fmb = calcFMB(hole+1);
+  if(!fmb){
+    ['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+  document.getElementById('fmbF').textContent = fmtU(fmb.front);
+  document.getElementById('fmbM').textContent = fmtU(fmb.mid);
+  document.getElementById('fmbB').textContent = fmtU(fmb.back);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TARGET: pin if set, else OSM green centre
+// ─────────────────────────────────────────────────────────────────────────────
+function getTarget(){
+  if(pin) return pin;
+  return osmGreens[hole+1] || null;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BUILD UI
@@ -424,10 +511,13 @@ function selHole(idx,quiet=false){
   if(!quiet){
     pin=null;
     document.getElementById('clrBtn').disabled=true;
-    resetRing();
+    document.getElementById('pinBtn').style.cssText='';
     if(pinMarker){map&&map.removeLayer(pinMarker);pinMarker=null;}
     if(routeLine){map&&map.removeLayer(routeLine);routeLine=null;}
-    if(pos) setStatus('GPS locked · Mark the pin to measure','ok');
+    resetRing();
+    // Show distance to new hole's green immediately if we have GPS + OSM data
+    if(pos) updDist();
+    updFMB();
     showToast(`Hole ${idx+1} · ${h.name} · Par ${h.par}`);
   }
   // Scroll scorecard row into view
@@ -465,6 +555,43 @@ function setUnit(u){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HAVERSINE + HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function hvs(a,b){
+  const R=6371000,r=x=>x*Math.PI/180;
+  const dL=r(b.lat-a.lat),dO=r(b.lng-a.lng);
+  const x=Math.sin(dL/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function fmt(m){return unit==='metres'?Math.round(m):Math.round(m*1.09361);}
+function fmtU(m){return fmt(m)+(unit==='metres'?'m':'y');}
+
+// Target = exact pin if marked, else OSM green centroid
+function getTarget(){return pin||osmGreens[hole+1]||null;}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FRONT / MIDDLE / BACK
+// ─────────────────────────────────────────────────────────────────────────────
+function updFMB(){
+  if(!pos){['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');return;}
+  const pts=osmGreenPolygons[hole+1];
+  const cen=osmGreens[hole+1];
+  if(!cen){['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');return;}
+  let front,mid,back;
+  mid=hvs(pos,cen);
+  if(pts&&pts.length>2){
+    let minD=Infinity,maxD=0;
+    pts.forEach(p=>{const d=hvs(pos,p);if(d<minD)minD=d;if(d>maxD)maxD=d;});
+    front=minD; back=maxD;
+  } else {
+    front=Math.max(0,mid-9); back=mid+9;
+  }
+  document.getElementById('fmbF').textContent=fmtU(front);
+  document.getElementById('fmbM').textContent=fmtU(mid);
+  document.getElementById('fmbB').textContent=fmtU(back);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GPS
 // ─────────────────────────────────────────────────────────────────────────────
 function startGPS(){
@@ -473,8 +600,8 @@ function startGPS(){
   navigator.geolocation.watchPosition(p=>{
     pos={lat:p.coords.latitude,lng:p.coords.longitude};
     document.getElementById('gpsDot').className='dot ok';
-    if(!pin) setStatus('GPS locked · Mark the pin to measure','ok');
     updDist();
+    updFMB();
     updateMeOnMap();
     checkAutoAdvance();
   },err=>{
@@ -487,56 +614,53 @@ function setPin(){
   if(!pos){showToast('Waiting for GPS…');return;}
   pin={...pos};
   document.getElementById('clrBtn').disabled=false;
-  setStatus('Pin marked · Walk to your ball','ok');
-  showToast('📍 Pin saved — Hole '+(hole+1));
+  const pb=document.getElementById('pinBtn');
+  pb.style.cssText='background:rgba(74,222,128,.15);border-color:var(--ok);color:var(--ok);';
+  showToast('📍 Exact pin saved — Hole '+(hole+1));
   if(map){
     if(pinMarker) map.removeLayer(pinMarker);
-    pinMarker=L.marker([pin.lat,pin.lng],{icon:mkIcon('pin-dot',14)}).addTo(map).bindPopup('Pin H'+(hole+1));
+    pinMarker=L.marker([pin.lat,pin.lng],{icon:mkIcon('pin-dot',14)}).addTo(map).bindPopup('📍 Exact Pin H'+(hole+1));
   }
   updDist();
 }
+
 function clearPin(){
   pin=null;
   document.getElementById('clrBtn').disabled=true;
+  document.getElementById('pinBtn').style.cssText='';
   if(pinMarker){map&&map.removeLayer(pinMarker);pinMarker=null;}
   if(routeLine){map&&map.removeLayer(routeLine);routeLine=null;}
-  resetRing();
-  setStatus('Pin cleared','');
+  updDist();
+  showToast('Pin cleared · using green centre');
 }
+
 function resetRing(){
   document.getElementById('dVal').textContent='—';
   document.getElementById('dVal').className='dv loading';
-  document.getElementById('dSub').textContent='to pin';
+  document.getElementById('dSub').textContent='to green';
   document.getElementById('ringArc').style.strokeDashoffset=CIRC;
   document.getElementById('mDist').textContent='—';
-  document.getElementById('mSub').textContent='mark pin first';
-}
-
-function hvs(a,b){
-  const R=6371000,r=x=>x*Math.PI/180;
-  const dL=r(b.lat-a.lat),dO=r(b.lng-a.lng);
-  const x=Math.sin(dL/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dO/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+  document.getElementById('mSub').textContent='acquiring GPS';
+  ['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');
 }
 
 function updDist(){
-  if(!pos||!pin) return;
-  const m=hvs(pos,pin);
-  const d=unit==='metres'?Math.round(m):Math.round(m*1.09361);
+  if(!pos){setStatus('Acquiring GPS…','');return;}
+  const target=getTarget();
+  if(!target){setStatus('GPS locked · loading course data…','ok');return;}
+  const m=hvs(pos,target);
   const el=document.getElementById('dVal');
-  el.textContent=d; el.className='dv';
+  el.textContent=fmt(m); el.className='dv';
   document.getElementById('ringArc').style.strokeDashoffset=CIRC-CIRC*Math.min(m/460,1);
-  const sub=m<20?'At the pin!':m<46?'Almost there!':m<91?'Short iron':m<137?'Mid iron':m<183?'Long iron':'Driver territory';
-  document.getElementById('dSub').textContent=sub;
-  document.getElementById('mDist').textContent=d+(unit==='metres'?'m':'y');
+  const sub=m<20?(pin?'At the pin!':'At the green!'):m<46?'Almost there!':m<91?'Short iron':m<137?'Mid iron':m<183?'Long iron':'Driver territory';
+  document.getElementById('dSub').textContent=pin?'to exact pin':'to green';
+  document.getElementById('mDist').textContent=fmtU(m);
   document.getElementById('mSub').textContent=sub;
-  setStatus('Updated · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),'ok');
-  // Draw route line
-  if(map){
+  setStatus((pin?'📍 Exact pin':'🏌 Green centre')+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),'ok');
+  updFMB();
+  if(map&&pin){
     if(routeLine) map.removeLayer(routeLine);
-    routeLine=L.polyline([[pos.lat,pos.lng],[pin.lat,pin.lng]],{
-      color:m<50?'#4ade80':'#c9a84c',weight:2.5,dashArray:'6 5',opacity:.85
-    }).addTo(map);
+    routeLine=L.polyline([[pos.lat,pos.lng],[pin.lat,pin.lng]],{color:m<50?'#4ade80':'#c9a84c',weight:2.5,dashArray:'6 5',opacity:.85}).addTo(map);
   }
 }
 
@@ -709,7 +833,10 @@ function renderOSM(els){
       const c=centroid(el.geometry);
       if(c){
         if(g==='green'&&ref){
-          osmGreens[parseInt(ref)]=c;
+          const n=parseInt(ref);
+          osmGreens[n]=c;
+          // Store polygon points for front/middle/back calculation
+          osmGreenPolygons[n]=el.geometry.map(p=>({lat:p.lat,lng:p.lon}));
           L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${ref}</div>`,iconSize:[17,17],iconAnchor:[8.5,8.5]})}).addTo(map);
         }
         if(g==='tee'&&ref) osmTees[parseInt(ref)]=c;
@@ -719,6 +846,9 @@ function renderOSM(els){
   });
   if(osmGreens[1]) map.setView([osmGreens[1].lat,osmGreens[1].lng],16);
   if(pos&&!meMarker) meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');
+  // Now that we have green centres, update distances immediately
+  updDist();
+  updFMB();
 }
 
 function updateMeOnMap(){
@@ -762,15 +892,28 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ─────────────────────────────────────────────────────────────────────────────
 selHole(0,true);
 startGPS();
-// Tab alias fixes
-document.getElementById('tGps').id='tGps';
-// Fix tab IDs to match showTab logic
-document.getElementById('tGps').onclick=()=>showTab('gps');
-document.getElementById('tMap').onclick=()=>showTab('map');
-document.getElementById('tCard').onclick=()=>showTab('card');
-document.getElementById('panelGps').id='panelGps';
-document.getElementById('panelMap').id='panelMap';
-document.getElementById('panelCard').id='panelCard';
+// Pre-fetch OSM green data in background so distances work immediately
+// (map tile layers only load when map tab opened, but we need green coords now)
+(async function prefetchOSM(){
+  const q=`[out:json][timeout:30];(way["golf"="green"](53.368,-6.102,53.383,-6.070););out body geom;`;
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
+    const d=await r.json();
+    d.elements.forEach(el=>{
+      if(el.type!=='way'||!el.geometry||el.geometry.length<3) return;
+      const ref=el.tags&&(el.tags.ref||el.tags['ref:hole']); if(!ref) return;
+      const n=parseInt(ref);
+      const pts=el.geometry.map(p=>({lat:p.lat,lng:p.lon}));
+      osmGreenPolygons[n]=pts;
+      osmGreens[n]={
+        lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,
+        lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length
+      };
+    });
+    // Update display now that we have green positions
+    updDist(); updFMB();
+  }catch(e){ /* silent fail — map tab will retry */ }
+})();
 </script>
 </body>
 </html>
