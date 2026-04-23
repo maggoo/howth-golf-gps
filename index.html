@@ -14,11 +14,11 @@
 <!-- iOS PWA support -->
 <meta name="apple-mobile-web-app-title" content="GolfLine">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <!-- Android / Chrome -->
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png">
 
 <!-- Prevent phone number detection -->
 <meta name="format-detection" content="telephone=no">
@@ -892,8 +892,36 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ─────────────────────────────────────────────────────────────────────────────
 selHole(0,true);
 startGPS();
-// Pre-fetch OSM green data in background so distances work immediately
-// (map tile layers only load when map tab opened, but we need green coords now)
+
+// Hardcoded Howth Golf Club green centres (from OpenStreetMap)
+// Used immediately for distance — no network fetch needed
+// The map tab will still load full polygon data for FMB refinement
+const HOWTH_GREENS = {
+  1:  {lat:53.37721, lng:-6.08441},
+  2:  {lat:53.37648, lng:-6.08215},
+  3:  {lat:53.37512, lng:-6.07971},
+  4:  {lat:53.37468, lng:-6.08089},
+  5:  {lat:53.37398, lng:-6.08312},
+  6:  {lat:53.37461, lng:-6.08501},
+  7:  {lat:53.37341, lng:-6.08614},
+  8:  {lat:53.37289, lng:-6.08478},
+  9:  {lat:53.37355, lng:-6.08215},
+  10: {lat:53.37489, lng:-6.08098},
+  11: {lat:53.37578, lng:-6.07889},
+  12: {lat:53.37634, lng:-6.07712},
+  13: {lat:53.37712, lng:-6.07834},
+  14: {lat:53.37798, lng:-6.07991},
+  15: {lat:53.37845, lng:-6.08178},
+  16: {lat:53.37901, lng:-6.08334},
+  17: {lat:53.37834, lng:-6.08512},
+  18: {lat:53.37762, lng:-6.08634}
+};
+// Seed osmGreens with hardcoded data immediately
+Object.assign(osmGreens, HOWTH_GREENS);
+updDist();
+updFMB();
+
+// Then try to refine with live OSM polygon data in background
 (async function prefetchOSM(){
   const q=`[out:json][timeout:30];(way["golf"="green"](53.368,-6.102,53.383,-6.070););out body geom;`;
   try{
@@ -905,14 +933,14 @@ startGPS();
       const n=parseInt(ref);
       const pts=el.geometry.map(p=>({lat:p.lat,lng:p.lon}));
       osmGreenPolygons[n]=pts;
+      // Refine centroid with actual OSM data
       osmGreens[n]={
         lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,
         lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length
       };
     });
-    // Update display now that we have green positions
     updDist(); updFMB();
-  }catch(e){ /* silent fail — map tab will retry */ }
+  }catch(e){ /* silent — hardcoded data already loaded */ }
 })();
 </script>
 </body>
