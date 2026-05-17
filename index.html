@@ -51,6 +51,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .hbtn.active{background:var(--gold);border-color:var(--gold);color:var(--gd);font-weight:700;}
 .hbtn.done{border-color:rgba(74,222,128,.5);color:var(--ok);}
 .hbtn.surveyed{border-color:rgba(74,222,128,.9);background:rgba(74,222,128,.08);}
+.hbtn.active.surveyed{background:var(--gold);border-color:var(--ok);border-width:3px;color:var(--gd);}
 .hbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
 
 /* HOLE INFO BAR */
@@ -295,7 +296,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 const HOLES=[
   {w:309,y:300,r:288,par:4,hdcp:13,name:"Ireland's Eye"},
   {w:311,y:298,r:279,par:4,hdcp:7, name:"Aideens"},
-  {w:403,y:384,r:375,par:5,hdcp:1, name:"Bloody Stream"},
+  {w:403,y:384,r:375,par:4,hdcp:1, name:"Bloody Stream"},
   {w:155,y:143,r:136,par:3,hdcp:11,name:"Knocknabohill"},
   {w:405,y:338,r:317,par:4,hdcp:3, name:"Summit"},
   {w:283,y:265,r:225,par:4,hdcp:15,name:"Black Linn"},
