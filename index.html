@@ -18,114 +18,135 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--gd:#0d2b0d;--gold:#c9a84c;--goldl:#e8c878;--cream:#f5f0e8;--red:#c0392b;--muted:rgba(245,240,232,.52);--ok:#4ade80;}
+:root{--gd:#0d2b0d;--gold:#c9a84c;--goldl:#e8c878;--cream:#f5f0e8;--red:#c0392b;--muted:rgba(245,240,232,.6);--ok:#4ade80;}
 html,body{height:100%;background:var(--gd);color:var(--cream);font-family:'DM Mono',monospace;overflow:hidden;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(255,255,255,.011) 3px,rgba(255,255,255,.011) 6px),repeating-linear-gradient(0deg,transparent,transparent 8px,rgba(0,0,0,.04) 8px,rgba(0,0,0,.04) 16px);}
 .app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;}
-.hdr{padding:11px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.22);flex-shrink:0;}
-.logo{font-family:'Playfair Display',serif;font-size:19px;letter-spacing:.05em;color:var(--gold);line-height:1;}
+
+/* HEADER */
+.hdr{padding:12px 16px 9px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.22);flex-shrink:0;}
+.logo{font-family:'Playfair Display',serif;font-size:22px;letter-spacing:.05em;color:var(--gold);line-height:1;}
 .logo span{color:var(--cream);font-weight:400;}
-.cname{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.cname{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
 .hdr-r{display:flex;align-items:center;gap:10px;}
-.gps-ind{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
-.dot{width:7px;height:7px;border-radius:50%;background:#555;transition:background .4s;}
+.gps-ind{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.dot{width:9px;height:9px;border-radius:50%;background:#555;transition:background .4s;}
 .dot.ok{background:var(--ok);animation:pulse 2s infinite;}
 .dot.err{background:var(--red);}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.82)}}
-.auto-badge{font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.35);color:var(--ok);cursor:pointer;}
-.auto-badge.off{border-color:rgba(255,255,255,.15);color:var(--muted);}
+.auto-badge{font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:10px;border:1px solid rgba(74,222,128,.35);color:var(--ok);cursor:pointer;}
+.auto-badge.off{border-color:rgba(255,255,255,.2);color:var(--muted);}
+
+/* TABS */
 .tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
-.tab{flex:1;padding:8px 4px;text-align:center;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.hole-bar{padding:7px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
-.hl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap;}
-.hsel{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;}
+
+/* HOLE SELECTOR */
+.hole-bar{padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.hl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap;}
+.hsel{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex:1;}
 .hsel::-webkit-scrollbar{display:none;}
-.hbtn{min-width:27px;height:27px;border-radius:50%;border:1.5px solid rgba(201,168,76,.28);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.hbtn.active{background:var(--gold);border-color:var(--gold);color:var(--gd);font-weight:500;}
-.hbtn.done{border-color:rgba(74,222,128,.4);color:var(--ok);}
+.hbtn{min-width:34px;height:34px;border-radius:50%;border:2px solid rgba(201,168,76,.3);background:transparent;color:var(--cream);font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hbtn.active{background:var(--gold);border-color:var(--gold);color:var(--gd);font-weight:700;}
+.hbtn.done{border-color:rgba(74,222,128,.5);color:var(--ok);}
 .hbtn.surveyed{border-color:rgba(74,222,128,.9);background:rgba(74,222,128,.08);}
 .hbtn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
-.hinfo{padding:5px 16px;display:flex;gap:11px;align-items:center;background:rgba(255,255,255,.022);border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
-.hi{display:flex;flex-direction:column;gap:1px;}
-.hiv{font-family:'Playfair Display',serif;font-size:14px;color:var(--cream);line-height:1;}
+
+/* HOLE INFO BAR */
+.hinfo{padding:7px 16px;display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.022);border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.hi{display:flex;flex-direction:column;gap:2px;}
+.hiv{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);line-height:1;}
 .hiv.g{color:var(--gold);}
-.hil{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-.hsep{width:1px;height:22px;background:rgba(255,255,255,.1);}
-.hname{font-size:10px;color:var(--muted);flex:1;text-align:right;font-style:italic;}
+.hil{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.hsep{width:1px;height:26px;background:rgba(255,255,255,.15);}
+.hname{font-size:12px;color:var(--muted);flex:1;text-align:right;font-style:italic;}
+
+/* PANELS */
 .panel{flex:1;display:none;flex-direction:column;overflow:hidden;}
 .panel.show{display:flex;}
+
 /* GPS PANEL */
-.gps-panel{align-items:center;justify-content:center;padding:8px 16px;gap:9px;}
-.ring-wrap{position:relative;width:168px;height:168px;flex-shrink:0;}
+.gps-panel{align-items:center;justify-content:center;padding:10px 16px;gap:10px;}
+.ring-wrap{position:relative;width:175px;height:175px;flex-shrink:0;}
 .ring-svg{width:100%;height:100%;transform:rotate(-90deg);}
 .ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:3;}
-.ring-arc{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:490;stroke-dashoffset:490;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 6px rgba(201,168,76,.5));}
-.ring-inner{position:absolute;inset:13px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1e4a1e,#0a1f0a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 2px 18px rgba(0,0,0,.4);}
-.dv{font-family:'Playfair Display',serif;font-size:44px;line-height:1;color:var(--cream);letter-spacing:-.02em;transition:all .4s;}
+.ring-arc{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:503;stroke-dashoffset:503;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 6px rgba(201,168,76,.5));}
+.ring-inner{position:absolute;inset:13px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1e4a1e,#0a1f0a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 2px 18px rgba(0,0,0,.4);}
+.dv{font-family:'Playfair Display',serif;font-size:50px;line-height:1;color:var(--cream);letter-spacing:-.02em;transition:all .4s;}
 .dv.loading{color:var(--muted);animation:flicker 1.5s infinite;}
 @keyframes flicker{0%,100%{opacity:1}50%{opacity:.35}}
-.du{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
-.ds{font-size:9px;color:var(--muted);margin-top:1px;}
-.flagsvg{position:absolute;bottom:15px;right:15px;width:18px;height:18px;opacity:.9;}
+.du{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);}
+.ds{font-size:11px;color:var(--muted);margin-top:2px;}
+.flagsvg{position:absolute;bottom:16px;right:16px;width:20px;height:20px;opacity:.9;}
+
 /* FMB */
-.fmb-row{display:flex;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;}
-.fmb-card{flex:1;padding:7px 5px;text-align:center;}
-.fmb-mid{border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);background:rgba(201,168,76,.06);}
-.fmb-lbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
-.fmb-val{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);line-height:1;}
-.fmb-mid .fmb-val{color:var(--gold);}.fmb-mid .fmb-lbl{color:rgba(201,168,76,.7);}
-/* Survey */
-.survey-wrap{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:7px 10px;display:flex;flex-direction:column;gap:6px;}
-.survey-title{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;}
+.fmb-row{display:flex;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;}
+.fmb-card{flex:1;padding:9px 5px;text-align:center;}
+.fmb-mid{border-left:1px solid rgba(255,255,255,.1);border-right:1px solid rgba(255,255,255,.1);background:rgba(201,168,76,.06);}
+.fmb-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.fmb-val{font-family:'Playfair Display',serif;font-size:22px;color:var(--cream);line-height:1;}
+.fmb-mid .fmb-val{color:var(--gold);}
+.fmb-mid .fmb-lbl{color:rgba(201,168,76,.8);}
+
+/* SURVEY */
+.survey-wrap{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px 12px;display:flex;flex-direction:column;gap:8px;}
+.survey-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;}
 .survey-prog{color:var(--ok);}
-.survey-row{display:flex;gap:5px;}
-.sbtn{flex:1;padding:7px 4px;border-radius:8px;border:1.5px solid rgba(201,168,76,.3);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.survey-row{display:flex;gap:6px;}
+.sbtn{flex:1;padding:10px 4px;border-radius:9px;border:2px solid rgba(201,168,76,.3);background:transparent;color:var(--cream);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .sbtn.marked{border-color:var(--ok);color:var(--ok);background:rgba(74,222,128,.07);}
 .sbtn:active{transform:scale(.96);}
-.sicon{font-size:11px;line-height:1;}
-.survey-acts{display:flex;gap:5px;}
-.pbtn{flex:1;padding:9px 8px;border-radius:10px;border:2px solid var(--gold);background:var(--gold);color:var(--gd);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.pbtn.sec{background:transparent;color:var(--gold);border-color:rgba(201,168,76,.35);}
-/* Tees */
-.tee-row{display:flex;gap:6px;width:100%;}
-.tc{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:6px 5px;text-align:center;cursor:pointer;transition:all .2s;}
+.sicon{font-size:14px;line-height:1;}
+.survey-acts{display:flex;gap:6px;}
+.pbtn{flex:1;padding:11px 8px;border-radius:10px;border:2px solid var(--gold);background:var(--gold);color:var(--gd);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pbtn.sec{background:transparent;color:var(--gold);border-color:rgba(201,168,76,.4);}
+
+/* TEES */
+.tee-row{display:flex;gap:7px;width:100%;}
+.tc{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;transition:all .2s;}
 .tc.active{border-color:var(--gold);background:rgba(201,168,76,.09);}
-.tdot{width:8px;height:8px;border-radius:50%;margin:0 auto 3px;}
+.tdot{width:10px;height:10px;border-radius:50%;margin:0 auto 4px;}
 .tdot.white{background:#e8e8e8;}.tdot.yellow{background:#f5c842;}.tdot.red{background:var(--red);}
-.tdist{font-family:'Playfair Display',serif;font-size:13px;color:var(--cream);line-height:1;}
-.tlbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:1px;}
-.utog{display:flex;background:rgba(255,255,255,.05);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.08);}
-.ubtn{padding:5px 14px;border-radius:17px;border:none;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
-.ubtn.active{background:var(--gold);color:var(--gd);font-weight:500;}
-.smsg{font-size:10px;color:var(--muted);letter-spacing:.05em;text-align:center;min-height:14px;transition:color .3s;width:100%;}
+.tdist{font-family:'Playfair Display',serif;font-size:16px;color:var(--cream);line-height:1;}
+.tlbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+/* UNIT TOGGLE */
+.utog{display:flex;background:rgba(255,255,255,.05);border-radius:22px;padding:3px;border:1px solid rgba(255,255,255,.1);}
+.ubtn{padding:7px 18px;border-radius:20px;border:none;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.ubtn.active{background:var(--gold);color:var(--gd);font-weight:600;}
+
+/* STATUS */
+.smsg{font-size:12px;color:var(--muted);letter-spacing:.04em;text-align:center;min-height:16px;transition:color .3s;width:100%;}
 .smsg.ok{color:var(--ok);}.smsg.err{color:#f87171;}
+
 /* MAP */
 .map-panel{position:relative;}
 #map{flex:1;width:100%;background:#0f2b0f;}
-.map-status{position:absolute;top:9px;left:50%;transform:translateX(-50%);background:rgba(10,22,10,.9);border:1px solid rgba(201,168,76,.4);border-radius:20px;padding:4px 13px;font-size:10px;color:var(--gold);z-index:1000;letter-spacing:.05em;backdrop-filter:blur(8px);white-space:nowrap;transition:opacity .6s;}
-.map-ov{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:7px;z-index:1000;pointer-events:none;}
-.moc{background:rgba(8,18,8,.9);border:1px solid rgba(201,168,76,.5);border-radius:9px;padding:7px 10px;backdrop-filter:blur(8px);pointer-events:all;flex:1;}
-.mot{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:2px;}
-.mov{font-family:'Playfair Display',serif;font-size:17px;color:var(--cream);line-height:1;}
-.mos{font-size:8px;color:var(--muted);margin-top:1px;}
+.map-status{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(10,22,10,.9);border:1px solid rgba(201,168,76,.4);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold);z-index:1000;letter-spacing:.04em;backdrop-filter:blur(8px);white-space:nowrap;transition:opacity .6s;}
+.map-ov{position:absolute;bottom:12px;left:12px;right:12px;display:flex;gap:8px;z-index:1000;pointer-events:none;}
+.moc{background:rgba(8,18,8,.9);border:1px solid rgba(201,168,76,.5);border-radius:10px;padding:9px 12px;backdrop-filter:blur(8px);pointer-events:all;flex:1;}
+.mot{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
+.mov{font-family:'Playfair Display',serif;font-size:20px;color:var(--cream);line-height:1;}
+.mos{font-size:11px;color:var(--muted);margin-top:2px;}
+
 /* SCORECARD */
-.score-panel{overflow-y:auto;padding:0 0 16px;}
-.sc-hdr{padding:9px 16px 7px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:var(--gd);z-index:10;}
-.sc-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);}
-.sc-totals{display:flex;gap:10px;align-items:center;}
+.score-panel{overflow-y:auto;padding:0 0 20px;}
+.sc-hdr{padding:11px 16px 9px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:var(--gd);z-index:10;}
+.sc-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);}
+.sc-totals{display:flex;gap:12px;align-items:center;}
 .sct{text-align:center;}
-.sct-v{font-family:'Playfair Display',serif;font-size:17px;color:var(--cream);}
-.sct-l{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-.reset-btn{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:7px;border:1px solid rgba(201,168,76,.35);background:transparent;color:var(--gold);cursor:pointer;}
+.sct-v{font-family:'Playfair Display',serif;font-size:20px;color:var(--cream);}
+.sct-l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.reset-btn{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:8px;border:1px solid rgba(201,168,76,.4);background:transparent;color:var(--gold);cursor:pointer;}
 .sc-table{width:100%;border-collapse:collapse;}
-.sc-table th{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:5px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);}
-.sc-table td{padding:4px 5px;text-align:center;font-size:11px;border-bottom:1px solid rgba(255,255,255,.04);}
+.sc-table th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);}
+.sc-table td{padding:7px 5px;text-align:center;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05);}
 .active-row td{background:rgba(201,168,76,.08);}
-.sc-num{font-family:'Playfair Display',serif;font-size:12px;color:var(--muted);}
-.sc-par{color:var(--gold);font-size:11px;}
-.sc-name{font-size:9px;color:var(--muted);font-style:italic;text-align:left;padding-left:8px;}
-.score-input{width:30px;height:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:5px;color:var(--cream);font-family:'Playfair Display',serif;font-size:13px;text-align:center;outline:none;transition:border .2s;-moz-appearance:textfield;}
+.sc-num{font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);}
+.sc-par{color:var(--gold);font-size:14px;}
+.sc-name{font-size:12px;color:var(--muted);font-style:italic;text-align:left;padding-left:10px;}
+.score-input{width:38px;height:34px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:7px;color:var(--cream);font-family:'Playfair Display',serif;font-size:17px;text-align:center;outline:none;transition:border .2s;-moz-appearance:textfield;}
 .score-input::-webkit-outer-spin-button,.score-input::-webkit-inner-spin-button{-webkit-appearance:none;}
 .score-input:focus{border-color:var(--gold);}
 .score-input.eagle{border-color:#fbbf24;color:#fbbf24;}
@@ -133,24 +154,29 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .score-input.par-s{border-color:rgba(255,255,255,.3);}
 .score-input.bogey{border-color:#fb923c;color:#fb923c;}
 .score-input.dbogey{border-color:var(--red);color:var(--red);}
-.sc-diff{font-size:10px;font-weight:500;}
+.sc-diff{font-size:13px;font-weight:600;}
 .sc-diff.neg{color:var(--ok);}.sc-diff.pos{color:#fb923c;}.sc-diff.zero{color:var(--muted);}
-.sc-nine td{padding:5px 6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.025);}
-.nine-v{font-family:'Playfair Display',serif;font-size:14px;color:var(--cream);}
+.sc-nine td{padding:7px 6px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.025);}
+.nine-v{font-family:'Playfair Display',serif;font-size:17px;color:var(--cream);}
+
 /* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s;}
 .modal-bg.show{opacity:1;pointer-events:all;}
-.modal{background:linear-gradient(145deg,#0f2e0f,#0a1f0a);border:1px solid var(--gold);border-radius:16px;padding:22px 18px;max-width:290px;width:90%;text-align:center;}
-.modal-icon{font-size:32px;margin-bottom:8px;}
-.modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:5px;}
-.modal-sub{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
-.modal-btns{display:flex;gap:8px;}
-.mbtn{flex:1;padding:10px;border-radius:9px;border:none;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;}
-.mbtn.confirm{background:var(--gold);color:var(--gd);font-weight:500;}
-.mbtn.cancel{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);}
+.modal{background:linear-gradient(145deg,#0f2e0f,#0a1f0a);border:1px solid var(--gold);border-radius:16px;padding:24px 20px;max-width:300px;width:90%;text-align:center;}
+.modal-icon{font-size:36px;margin-bottom:10px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);margin-bottom:6px;}
+.modal-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:18px;}
+.modal-btns{display:flex;gap:10px;}
+.mbtn{flex:1;padding:12px;border-radius:10px;border:none;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.mbtn.confirm{background:var(--gold);color:var(--gd);font-weight:600;}
+.mbtn.cancel{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.15);}
+
+/* LEAFLET */
 .me-dot{width:14px;height:14px;background:var(--ok);border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 10px rgba(74,222,128,.6);}
-.hole-lbl{background:rgba(192,57,43,.9);color:#fff;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(8,18,8,.95);border:1px solid var(--gold);border-radius:11px;padding:8px 16px;font-size:11px;color:var(--gold);letter-spacing:.04em;backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.hole-lbl{background:rgba(192,57,43,.9);color:#fff;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(8,18,8,.95);border:1px solid var(--gold);border-radius:12px;padding:10px 18px;font-size:13px;color:var(--gold);letter-spacing:.04em;backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
@@ -179,11 +205,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="hsep"></div>
     <div class="hi"><div class="hiv" id="iI">13</div><div class="hil">S.I.</div></div>
     <div class="hsep"></div>
-    <div class="hi"><div class="hiv" id="iToPar" style="font-size:12px">E</div><div class="hil">vs Par</div></div>
+    <div class="hi"><div class="hiv" id="iToPar" style="font-size:16px">E</div><div class="hil">vs Par</div></div>
     <div class="hname" id="iN">Ireland's Eye</div>
   </div>
-
-  <!-- GPS PANEL -->
   <div class="panel gps-panel show" id="panelGps">
     <div class="ring-wrap">
       <svg class="ring-svg" viewBox="0 0 168 168">
@@ -213,8 +237,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <button class="sbtn" id="sbB" onclick="surveyMark('back')"><span class="sicon" id="siB">○</span> Back</button>
       </div>
       <div class="survey-acts">
-        <button class="pbtn sec" style="font-size:9px;padding:6px 8px;" onclick="clearSurvey()">Clear</button>
-        <button class="pbtn sec" style="font-size:9px;padding:6px 8px;" onclick="exportSurvey()">Export</button>
+        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Clear</button>
+        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="exportSurvey()">Export</button>
         <button class="pbtn sec" onclick="nextHole()">Next Hole ▸</button>
       </div>
     </div>
@@ -229,8 +253,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     </div>
     <div class="smsg" id="sMsg">Enable GPS to begin</div>
   </div>
-
-  <!-- MAP PANEL -->
   <div class="panel map-panel" id="panelMap">
     <div class="map-status" id="mapSt">Loading course data…</div>
     <div id="map"></div>
@@ -240,8 +262,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="moc" style="flex:.7;cursor:pointer;" onclick="centerMe()"><div class="mot">Centre</div><div class="mov">📍</div><div class="mos">me</div></div>
     </div>
   </div>
-
-  <!-- SCORECARD PANEL -->
   <div class="panel score-panel" id="panelCard">
     <div class="sc-hdr">
       <div class="sc-title">Scorecard</div>
@@ -258,7 +278,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     </table>
   </div>
 </div>
-
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-icon">⛳</div>
@@ -294,8 +313,27 @@ const HOLES=[
   {w:378,y:363,r:348,par:4,hdcp:12,name:"The Finish"},
 ];
 
-// Estimated green centres — refined by OSM fetch and survey data
-const HG={1:{lat:53.37721,lng:-6.08441},2:{lat:53.37648,lng:-6.08215},3:{lat:53.37512,lng:-6.07971},4:{lat:53.37468,lng:-6.08089},5:{lat:53.37398,lng:-6.08312},6:{lat:53.37461,lng:-6.08501},7:{lat:53.37341,lng:-6.08614},8:{lat:53.37289,lng:-6.08478},9:{lat:53.37355,lng:-6.08215},10:{lat:53.37489,lng:-6.08098},11:{lat:53.37578,lng:-6.07889},12:{lat:53.37634,lng:-6.07712},13:{lat:53.37712,lng:-6.07834},14:{lat:53.37798,lng:-6.07991},15:{lat:53.37845,lng:-6.08178},16:{lat:53.37901,lng:-6.08334},17:{lat:53.37834,lng:-6.08512},18:{lat:53.37762,lng:-6.08634}};
+// ── SURVEYED GREEN DATA (GPS-accurate, walked the course) ──────────────────
+// Holes 1,3,4,5,8,17,18 surveyed by user. Remainder are estimates.
+const SURVEYED = {
+  1:  {front:{lat:53.3772056,lng:-6.0834511},mid:{lat:53.3771794,lng:-6.08328},  back:{lat:53.3771506,lng:-6.0830188}},
+  3:  {front:{lat:53.3742303,lng:-6.0779009},mid:{lat:53.374132, lng:-6.0778097},back:{lat:53.3740327,lng:-6.0776757}},
+  4:  {front:{lat:53.3738957,lng:-6.0773294},mid:{lat:53.3737631,lng:-6.0772809},back:{lat:53.3736634,lng:-6.0772194}},
+  5:  {front:{lat:53.3722082,lng:-6.0736021},mid:{lat:53.3722708,lng:-6.0734912},back:{lat:53.3723501,lng:-6.0734008}},
+  8:  {front:{lat:53.374442, lng:-6.0798704},mid:{lat:53.3745251,lng:-6.0800147},back:{lat:53.3746083,lng:-6.0801781}},
+  17: {front:{lat:53.3750048,lng:-6.0819655},mid:{lat:53.3750501,lng:-6.0821551},back:{lat:53.3751276,lng:-6.08232}},
+  18: {front:{lat:53.3761273,lng:-6.0871625},mid:{lat:53.3761941,lng:-6.0873272},back:{lat:53.3762518,lng:-6.0874156}},
+};
+
+// Estimated centres for unsurveyed holes (replaced when surveyed)
+const EST = {
+  2: {lat:53.37648,lng:-6.08215}, 6: {lat:53.37461,lng:-6.08501},
+  7: {lat:53.37341,lng:-6.08614}, 9: {lat:53.37355,lng:-6.08215},
+  10:{lat:53.37489,lng:-6.08098},11:{lat:53.37578,lng:-6.07889},
+  12:{lat:53.37634,lng:-6.07712},13:{lat:53.37712,lng:-6.07834},
+  14:{lat:53.37798,lng:-6.07991},15:{lat:53.37845,lng:-6.08178},
+  16:{lat:53.37901,lng:-6.08334},
+};
 
 // State
 let pos=null,unit='metres',hole=0,tee='white';
@@ -305,24 +343,69 @@ let map=null,meMarker=null,routeLine=null;
 let osmGreens={},osmGreenPolygons={};
 const CIRC=490;
 
-// Survey persistence
+// Survey persistence (localStorage lets users re-survey to refine)
 let surveyData={};
 const SK='howth_survey_v1';
 function loadSurvey(){try{surveyData=JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){surveyData={}}}
 function saveSurvey(){try{localStorage.setItem(SK,JSON.stringify(surveyData))}catch(e){}}
 loadSurvey();
 
+// Merge baked surveyed data with localStorage overrides
+// Priority: localStorage (freshest walk) > baked SURVEYED > EST
+function buildGreenData(){
+  // Start with baked surveyed data
+  Object.entries(SURVEYED).forEach(([n,d])=>{
+    const ni=parseInt(n);
+    osmGreens[ni]=d.mid;
+  });
+  // Estimates for unsurveyed holes
+  Object.entries(EST).forEach(([n,c])=>{
+    const ni=parseInt(n);
+    if(!osmGreens[ni]) osmGreens[ni]=c;
+  });
+  // localStorage overrides everything (user's latest walk)
+  Object.entries(surveyData).forEach(([n,d])=>{
+    const ni=parseInt(n);
+    if(d.mid) osmGreens[ni]=d.mid;
+  });
+}
+buildGreenData();
+
+// Helper: get best FMB data for a hole
+// Priority: localStorage survey > baked SURVEYED > OSM polygon > estimate
+function getFMBData(n){
+  if(surveyData[n]&&surveyData[n].front&&surveyData[n].mid&&surveyData[n].back) return surveyData[n];
+  if(SURVEYED[n]) return SURVEYED[n];
+  return null;
+}
+function isSurveyed(n){return !!(SURVEYED[n]||( surveyData[n]&&surveyData[n].front&&surveyData[n].mid&&surveyData[n].back));}
+
 // Maths
 function hvs(a,b){const R=6371000,r=x=>x*Math.PI/180,dL=r(b.lat-a.lat),dO=r(b.lng-a.lng);const x=Math.sin(dL/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 function fmt(m){return unit==='metres'?Math.round(m):Math.round(m*1.09361);}
 function fmtU(m){return fmt(m)+(unit==='metres'?'m':'y');}
-function getTarget(){const s=surveyData[hole+1];return(s&&s.mid)||osmGreens[hole+1]||null;}
+function getTarget(){
+  // localStorage first, then baked survey, then OSM, then estimate
+  const ls=surveyData[hole+1];if(ls&&ls.mid)return ls.mid;
+  if(SURVEYED[hole+1])return SURVEYED[hole+1].mid;
+  return osmGreens[hole+1]||null;
+}
 
 // Build hole buttons
 const hSel=document.getElementById('hSel');
-for(let i=0;i<18;i++){const b=document.createElement('button');b.className='hbtn'+(i===0?' active':'');b.textContent=i+1;b.id='hb'+i;b.onclick=()=>selHole(i);hSel.appendChild(b);}
+for(let i=0;i<18;i++){
+  const b=document.createElement('button');
+  b.className='hbtn'+(i===0?' active':'');
+  b.textContent=i+1;b.id='hb'+i;b.onclick=()=>selHole(i);
+  hSel.appendChild(b);
+}
 
-// Build scorecard with all 18 holes + front/back 9 summaries
+// Mark baked surveyed holes with green glow on load
+Object.keys(SURVEYED).forEach(n=>document.getElementById('hb'+(parseInt(n)-1)).classList.add('surveyed'));
+// localStorage overrides also get the glow
+Object.keys(surveyData).forEach(n=>{const s=surveyData[n];if(s.front&&s.mid&&s.back)document.getElementById('hb'+(parseInt(n)-1)).classList.add('surveyed');});
+
+// Build scorecard
 const scBody=document.getElementById('scBody');
 HOLES.forEach((h,i)=>{
   if(i===9){const sr=scBody.insertRow();sr.className='sc-nine';sr.innerHTML=`<td colspan="4" style="text-align:left;padding-left:8px">Front 9</td><td><span class="nine-v" id="f9s">—</span></td><td><span id="f9d">—</span></td>`;}
@@ -349,52 +432,77 @@ function updTeeCards(){const h=HOLES[hole],f=m=>unit==='metres'?m+'m':Math.round
 function selTee(t){tee=t;['white','yellow','red'].forEach(x=>document.getElementById('tc'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===t));}
 function setUnit(u){unit=u;document.getElementById('bM').classList.toggle('active',u==='metres');document.getElementById('bY').classList.toggle('active',u==='yards');document.getElementById('dUnit').textContent=u;updTeeCards();updDist();updFMB();}
 
-// FMB — front/middle/back distances to green
+// FMB
 function updFMB(){
   if(!pos){['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');return;}
-  const s=surveyData[hole+1];
-  if(s&&s.front&&s.mid&&s.back){document.getElementById('fmbF').textContent=fmtU(hvs(pos,s.front));document.getElementById('fmbM').textContent=fmtU(hvs(pos,s.mid));document.getElementById('fmbB').textContent=fmtU(hvs(pos,s.back));return;}
+  const fmb=getFMBData(hole+1);
+  if(fmb){
+    document.getElementById('fmbF').textContent=fmtU(hvs(pos,fmb.front));
+    document.getElementById('fmbM').textContent=fmtU(hvs(pos,fmb.mid));
+    document.getElementById('fmbB').textContent=fmtU(hvs(pos,fmb.back));
+    return;
+  }
+  // Fall back to OSM polygon edges or ±9m estimate
   const cen=osmGreens[hole+1];if(!cen){['fmbF','fmbM','fmbB'].forEach(id=>document.getElementById(id).textContent='—');return;}
   const mid=hvs(pos,cen),pts=osmGreenPolygons[hole+1];
   let front,back;
   if(pts&&pts.length>2){let mn=Infinity,mx=0;pts.forEach(p=>{const d=hvs(pos,p);if(d<mn)mn=d;if(d>mx)mx=d;});front=mn;back=mx;}
   else{front=Math.max(0,mid-9);back=mid+9;}
-  document.getElementById('fmbF').textContent=fmtU(front);document.getElementById('fmbM').textContent=fmtU(mid);document.getElementById('fmbB').textContent=fmtU(back);
+  document.getElementById('fmbF').textContent=fmtU(front);
+  document.getElementById('fmbM').textContent=fmtU(mid);
+  document.getElementById('fmbB').textContent=fmtU(back);
 }
 
-// Survey marking system
+// Survey
 function surveyMark(point){
   if(!pos){showToast('Waiting for GPS…');return;}
   const n=hole+1;if(!surveyData[n])surveyData[n]={};
   surveyData[n][point]={lat:pos.lat,lng:pos.lng};saveSurvey();
   const s=surveyData[n];
-  if(s.front&&s.mid&&s.back){osmGreens[n]=s.mid;document.getElementById('hb'+(n-1)).classList.add('surveyed');showToast(`✅ Hole ${n} fully surveyed!`);}
-  else showToast(`📍 ${point.charAt(0).toUpperCase()+point.slice(1)} of green ${n} saved`);
+  if(s.front&&s.mid&&s.back){
+    osmGreens[n]=s.mid;
+    document.getElementById('hb'+(n-1)).classList.add('surveyed');
+    showToast(`✅ Hole ${n} re-surveyed!`);
+  } else {
+    showToast(`📍 ${point.charAt(0).toUpperCase()+point.slice(1)} of green ${n} saved`);
+  }
   updSurveyUI();updDist();updFMB();
 }
 function clearSurvey(){
   delete surveyData[hole+1];saveSurvey();
-  document.getElementById('hb'+hole).classList.remove('surveyed');
-  // Restore hardcoded estimate
-  osmGreens[hole+1]=HG[hole+1];
-  updSurveyUI();updDist();updFMB();showToast(`Hole ${hole+1} survey cleared`);
+  // Restore baked data if available, else estimate
+  osmGreens[hole+1]=(SURVEYED[hole+1]&&SURVEYED[hole+1].mid)||EST[hole+1]||osmGreens[hole+1];
+  if(!SURVEYED[hole+1]) document.getElementById('hb'+hole).classList.remove('surveyed');
+  updSurveyUI();updDist();updFMB();
+  showToast(`Hole ${hole+1} local survey cleared`);
 }
 function updSurveyUI(){
-  const n=hole+1,s=surveyData[n]||{};
+  const n=hole+1;
+  // Show localStorage data in the buttons; baked data shows as pre-marked
+  const ls=surveyData[n]||{};
+  const baked=SURVEYED[n]||{};
   document.getElementById('surveyHole').textContent=n;
-  const count=[s.front,s.mid,s.back].filter(Boolean).length;
-  document.getElementById('surveyProg').textContent=count?`(${count}/3)`:'';
-  [['sbF','siF','front'],['sbM','siM','mid'],['sbB','siB','back']].forEach(([b,ic,k])=>{const done=!!s[k];document.getElementById(b).classList.toggle('marked',done);document.getElementById(ic).textContent=done?'✓':'○';});
+  const src=Object.keys(ls).length>0?ls:baked;
+  const count=[src.front,src.mid,src.back].filter(Boolean).length;
+  const isLocal=Object.keys(ls).length>0;
+  document.getElementById('surveyProg').textContent=count===3?(isLocal?'(re-surveyed)':'(baked ✓)'):count>0?`(${count}/3)`:'';
+  [['sbF','siF','front'],['sbM','siM','mid'],['sbB','siB','back']].forEach(([b,ic,k])=>{
+    const done=!!(ls[k]||baked[k]);
+    document.getElementById(b).classList.toggle('marked',done);
+    document.getElementById(ic).textContent=done?'✓':'○';
+  });
 }
 function exportSurvey(){
-  const count=Object.keys(surveyData).length;if(!count){showToast('No survey data yet');return;}
+  // Export localStorage survey data only (what user has walked themselves)
+  const count=Object.keys(surveyData).length;
+  if(!count){showToast('No new survey data — walk greens and mark Front/Mid/Back');return;}
   const ta=document.createElement('textarea');ta.value=JSON.stringify(surveyData,null,2);
   ta.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90vw;height:55vh;z-index:99999;background:#0d2b0d;color:#f5f0e8;border:1px solid #c9a84c;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;resize:none;';
   const cl=document.createElement('button');cl.textContent='✕ Close';
   cl.style.cssText='position:fixed;top:calc(50% - 28vh - 40px);left:50%;transform:translateX(-50%);z-index:99999;padding:8px 20px;background:#c9a84c;color:#0d2b0d;border:none;border-radius:8px;font-family:"DM Mono",monospace;font-size:11px;cursor:pointer;';
   cl.onclick=()=>{document.body.removeChild(ta);document.body.removeChild(cl);};
   document.body.appendChild(ta);ta.select();document.body.appendChild(cl);
-  showToast(`${count} hole(s) surveyed — copy & send to update app`);
+  showToast(`${count} hole(s) — copy & send to update app`);
 }
 
 // GPS
@@ -422,12 +530,11 @@ function updDist(){
   const m=hvs(pos,t);
   document.getElementById('dVal').textContent=fmt(m);document.getElementById('dVal').className='dv';
   document.getElementById('ringArc').style.strokeDashoffset=CIRC-CIRC*Math.min(m/460,1);
-  const hs=!!(surveyData[hole+1]&&surveyData[hole+1].mid);
+  const surveyed=isSurveyed(hole+1);
   const sub=m<20?'At the green!':m<46?'Almost there!':m<91?'Short iron':m<137?'Mid iron':m<183?'Long iron':'Driver territory';
-  document.getElementById('dSub').textContent=hs?'to surveyed green':'to green';
+  document.getElementById('dSub').textContent=surveyed?'to surveyed green':'to green (est.)';
   document.getElementById('mDist').textContent=fmtU(m);document.getElementById('mSub').textContent=sub;
-  setStatus((hs?'📍 Surveyed':'🏌 Est. green')+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),'ok');
-  // Always draw routing line on map
+  setStatus((surveyed?'📍 Surveyed':'🏌 Est.')+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),'ok');
   if(map){if(routeLine)map.removeLayer(routeLine);routeLine=L.polyline([[pos.lat,pos.lng],[t.lat,t.lng]],{color:m<50?'#4ade80':'#c9a84c',weight:2.5,dashArray:'6 5',opacity:.85}).addTo(map);}
 }
 
@@ -490,6 +597,10 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20}).addTo(map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,opacity:.5}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
+  // Plot surveyed greens immediately
+  Object.entries(SURVEYED).forEach(([n,d])=>{
+    L.marker([d.mid.lat,d.mid.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[17,17],iconAnchor:[8.5,8.5]})}).addTo(map);
+  });
   fetchOSM();if(pos)updDist();
 }
 async function fetchOSM(){
@@ -508,18 +619,18 @@ function renderOSM(els){
     const g=el.tags&&el.tags.golf;if(!g)return;
     const ref=el.tags&&(el.tags.ref||el.tags['ref:hole']);
     if(el.type==='way'&&el.geometry&&el.geometry.length>2){
-      L.polygon(el.geometry.map(p=>[p.lat,p.lon]),{color:'rgba(255,255,255,.12)',weight:1,fillColor:cols[g]||'#4a9a4a',fillOpacity:ops[g]||.3}).addTo(map).bindPopup(`<b style="color:#c9a84c">${g}</b>${ref?' · Hole '+ref:''}`);
+      L.polygon(el.geometry.map(p=>[p.lat,p.lon]),{color:'rgba(255,255,255,.12)',weight:1,fillColor:cols[g]||'#4a9a4a',fillOpacity:ops[g]||.3}).addTo(map);
       if(g==='green'&&ref){
         const n=parseInt(ref),pts=el.geometry.map(p=>({lat:p.lat,lng:p.lon}));
-        const c={lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};
         osmGreenPolygons[n]=pts;
-        // Only override estimate if not surveyed
-        if(!surveyData[n]||!surveyData[n].mid)osmGreens[n]=c;
-        L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${ref}</div>`,iconSize:[17,17],iconAnchor:[8.5,8.5]})}).addTo(map);
+        // Only use OSM centroid if hole not surveyed
+        if(!SURVEYED[n]&&(!surveyData[n]||!surveyData[n].mid)){
+          const c={lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};
+          osmGreens[n]=c;
+        }
       }
     }
   });
-  if(osmGreens[hole+1])map.setView([osmGreens[hole+1].lat,osmGreens[hole+1].lng],16);
   if(pos&&!meMarker)meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');
   updDist();updFMB();
 }
@@ -533,15 +644,8 @@ function showTab(t){
   if(t==='map'){initMap();setTimeout(()=>map&&map.invalidateSize(),60);}
   if(t==='card'){const r=document.getElementById('row'+hole);r&&r.scrollIntoView({behavior:'smooth',block:'center'});}
 }
-
-// Helpers
 function setStatus(msg,type){const el=document.getElementById('sMsg');el.textContent=msg;el.className='smsg'+(type?' '+type:'');}
 let tt;function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
-
-// Init — seed green centres (surveyed > OSM > hardcoded estimates)
-Object.entries(HG).forEach(([n,c])=>{const s=surveyData[parseInt(n)];osmGreens[parseInt(n)]=(s&&s.mid)||c;});
-// Mark already-surveyed holes on buttons
-Object.keys(surveyData).forEach(n=>{const s=surveyData[n];if(s.front&&s.mid&&s.back)document.getElementById('hb'+(parseInt(n)-1)).classList.add('surveyed');});
 
 selHole(0,true);
 startGPS();
