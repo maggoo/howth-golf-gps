@@ -186,7 +186,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <div class="hdr">
     <div><div class="logo">Golf<span>Line</span></div><div class="cname">Howth Golf Club · Dublin</div></div>
     <div class="hdr-r">
-      <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ▸</div>
+      <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ON</div>
       <div class="gps-ind"><div class="dot" id="gpsDot"></div><span>GPS</span></div>
     </div>
   </div>
@@ -240,7 +240,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="survey-acts">
         <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Clear</button>
         <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="exportSurvey()">Export</button>
-        <button class="pbtn sec" onclick="nextHole()">Next Hole ▸</button>
+        <button class="pbtn sec" onclick="nextHole()">Next &rarr;</button>
       </div>
     </div>
     <div class="tee-row">
@@ -540,7 +540,7 @@ function updDist(){
 }
 
 // Auto-advance
-function toggleAuto(){autoEnabled=!autoEnabled;document.getElementById('autoBadge').textContent=autoEnabled?'AUTO ▸':'AUTO ○';document.getElementById('autoBadge').classList.toggle('off',!autoEnabled);showToast(autoEnabled?'Auto-advance ON':'Auto-advance OFF');}
+function toggleAuto(){autoEnabled=!autoEnabled;document.getElementById('autoBadge').textContent=autoEnabled?'AUTO ON':'AUTO OFF';document.getElementById('autoBadge').classList.toggle('off',!autoEnabled);showToast(autoEnabled?'Auto-advance ON':'Auto-advance OFF');}
 function checkAutoAdvance(){
   if(!autoEnabled||!pos||modalPending||hole>=17)return;
   const g=osmGreens[hole+1];if(!g)return;
@@ -650,6 +650,41 @@ let tt;function showToast(msg){const t=document.getElementById('toast');t.textCo
 
 selHole(0,true);
 startGPS();
+
+// ── SWIPE GESTURES ────────────────────────────────────────────────────────
+// Swipe left = next hole, swipe right = previous hole
+// Ignores swipes that start on the map or scorecard input elements
+(function(){
+  let x0=null, y0=null;
+  const MIN_DIST = 60;   // minimum px to count as a swipe
+  const MAX_VERT = 80;   // max vertical drift before we ignore it
+
+  document.addEventListener('touchstart', e=>{
+    // Ignore if touch starts on map, score input, or hole selector
+    const el = e.target;
+    if(el.closest('#map') || el.closest('.score-input') || el.closest('.hsel')) return;
+    x0 = e.touches[0].clientX;
+    y0 = e.touches[0].clientY;
+  }, {passive:true});
+
+  document.addEventListener('touchend', e=>{
+    if(x0===null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null; y0 = null;
+    if(Math.abs(dy) > MAX_VERT) return;   // too much vertical — probably scrolling
+    if(Math.abs(dx) < MIN_DIST) return;   // too short — not a swipe
+    if(dx < 0) {
+      // Swipe left → next hole
+      if(hole < 17) selHole(hole+1);
+      else showToast('🏁 Last hole!');
+    } else {
+      // Swipe right → previous hole
+      if(hole > 0) selHole(hole-1);
+      else showToast('⛳ First hole!');
+    }
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
