@@ -426,6 +426,8 @@ function selHole(idx,quiet=false){
   document.querySelectorAll('#scBody tr[id^="row"]').forEach((r,i)=>r.classList.toggle('active-row',i===idx));
   if(!quiet){if(routeLine){map&&map.removeLayer(routeLine);routeLine=null;}pos?updDist():resetRing();updFMB();showToast(`Hole ${idx+1} · ${h.name} · Par ${h.par}`);}
   const row=document.getElementById('row'+idx);if(row)row.scrollIntoView({behavior:'smooth',block:'center'});
+  // Scroll the hole number bar to keep active button visible
+  const hbtn=document.getElementById('hb'+idx);if(hbtn)hbtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   if(map&&osmGreens[idx+1])map.setView([osmGreens[idx+1].lat,osmGreens[idx+1].lng],17);
 }
 function nextHole(){if(hole<17)selHole(hole+1);else showToast('🏁 Round complete!');}
