@@ -93,7 +93,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 /* SURVEY */
 .survey-wrap{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px 12px;display:flex;flex-direction:column;gap:8px;}
 .survey-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;}
-.survey-prog{color:var(--ok);}
+.survey-default{color:var(--ok);font-size:11px;letter-spacing:.06em;}
+.survey-override{color:#f5c842;font-size:11px;letter-spacing:.06em;font-weight:600;}
+.survey-partial{color:#fb923c;font-size:11px;letter-spacing:.06em;}
 .survey-row{display:flex;gap:6px;}
 .sbtn{flex:1;padding:10px 4px;border-radius:9px;border:2px solid rgba(201,168,76,.3);background:transparent;color:var(--cream);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .sbtn.marked{border-color:var(--ok);color:var(--ok);background:rgba(74,222,128,.07);}
@@ -231,14 +233,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="fmb-card"><div class="fmb-lbl">Back</div><div class="fmb-val" id="fmbB">—</div></div>
     </div>
     <div class="survey-wrap">
-      <div class="survey-title">Survey Green <span id="surveyHole">1</span> <span class="survey-prog" id="surveyProg"></span></div>
+      <div class="survey-title">
+        Hole <span id="surveyHole">1</span> &nbsp;
+        <span id="surveyStatus" class="survey-default">Default</span>
+      </div>
       <div class="survey-row">
         <button class="sbtn" id="sbF" onclick="surveyMark('front')"><span class="sicon" id="siF">○</span> Front</button>
         <button class="sbtn" id="sbM" onclick="surveyMark('mid')"><span class="sicon" id="siM">○</span> Mid</button>
         <button class="sbtn" id="sbB" onclick="surveyMark('back')"><span class="sicon" id="siB">○</span> Back</button>
       </div>
       <div class="survey-acts">
-        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Clear</button>
+        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Reset to Default</button>
         <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="exportSurvey()">Export</button>
         <button class="pbtn sec" onclick="nextHole()">Next &rarr;</button>
       </div>
@@ -475,34 +480,44 @@ function surveyMark(point){
   if(s.front&&s.mid&&s.back){
     osmGreens[n]=s.mid;
     document.getElementById('hb'+(n-1)).classList.add('surveyed');
-    showToast(`✅ Hole ${n} re-surveyed!`);
+    showToast(`Override active for Hole ${n}`);
   } else {
-    showToast(`📍 ${point.charAt(0).toUpperCase()+point.slice(1)} of green ${n} saved`);
+    showToast(`Override: ${point.charAt(0).toUpperCase()+point.slice(1)} saved for Hole ${n}`);
   }
   updSurveyUI();updDist();updFMB();
 }
 function clearSurvey(){
   delete surveyData[hole+1];saveSurvey();
-  // Restore baked data if available, else estimate
-  osmGreens[hole+1]=(SURVEYED[hole+1]&&SURVEYED[hole+1].mid)||EST[hole+1]||osmGreens[hole+1];
-  if(!SURVEYED[hole+1]) document.getElementById('hb'+hole).classList.remove('surveyed');
+  osmGreens[hole+1]=(SURVEYED[hole+1]&&SURVEYED[hole+1].mid)||osmGreens[hole+1];
   updSurveyUI();updDist();updFMB();
-  showToast(`Hole ${hole+1} local survey cleared`);
+  showToast(`Hole ${hole+1} reset to default`);
 }
 function updSurveyUI(){
   const n=hole+1;
-  // Show localStorage data in the buttons; baked data shows as pre-marked
   const ls=surveyData[n]||{};
-  const baked=SURVEYED[n]||{};
+  const hasOverride=Object.keys(ls).length>0;
+  const overrideCount=[ls.front,ls.mid,ls.back].filter(Boolean).length;
+
   document.getElementById('surveyHole').textContent=n;
-  const src=Object.keys(ls).length>0?ls:baked;
-  const count=[src.front,src.mid,src.back].filter(Boolean).length;
-  const isLocal=Object.keys(ls).length>0;
-  document.getElementById('surveyProg').textContent=count===3?(isLocal?'(re-surveyed)':'(baked ✓)'):count>0?`(${count}/3)`:'';
+
+  // Status label
+  const statusEl=document.getElementById('surveyStatus');
+  if(!hasOverride){
+    statusEl.textContent='Default';
+    statusEl.className='survey-default';
+  } else if(overrideCount===3){
+    statusEl.textContent='Override active';
+    statusEl.className='survey-override';
+  } else {
+    statusEl.textContent=`Override (${overrideCount}/3)`;
+    statusEl.className='survey-partial';
+  }
+
+  // Buttons — unticked when using default, ticked green when overridden
   [['sbF','siF','front'],['sbM','siM','mid'],['sbB','siB','back']].forEach(([b,ic,k])=>{
-    const done=!!(ls[k]||baked[k]);
-    document.getElementById(b).classList.toggle('marked',done);
-    document.getElementById(ic).textContent=done?'✓':'○';
+    const overridden=!!ls[k];
+    document.getElementById(b).classList.toggle('marked',overridden);
+    document.getElementById(ic).textContent=overridden?'✓':'○';
   });
 }
 function exportSurvey(){
