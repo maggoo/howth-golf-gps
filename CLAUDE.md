@@ -61,20 +61,21 @@ Persistent context for Claude Code working in this repo.
 
 ## GPS Coordinate Status: Surveyed vs Estimated
 
+**All 18 holes are now fully surveyed.** There are no estimated holes
+remaining. The `EST` object in `index.html` is empty and can be ignored.
+
 Green coordinates come from three sources, in priority order:
 
 1. **`surveyData`** (runtime, browser `localStorage`, key
    `howth_survey_v1`) — the user's most recent in-app GPS survey
    (Front/Mid/Back marked while standing on the green). Highest
    priority; lets the user re-survey to improve accuracy over time.
-2. **`SURVEYED`** (hardcoded in `index.html`) — coordinates the user
-   has previously walked, exported from the app, and asked to have
-   baked permanently into the code. **Currently surveyed: holes 1, 3,
-   4, 5, 8, 17, 18.** All other holes (2, 6, 7, 9–16) are NOT
-   surveyed — do not assume they're accurate.
-3. **`EST`** / live OSM fetch — rough hardcoded guesses or
-   OpenStreetMap data, used only as a fallback for unsurveyed holes.
-   Flagged in the UI as "(est.)". Known to be inaccurate.
+2. **`SURVEYED`** (hardcoded in `index.html`) — all 18 holes
+   GPS-walked by the user and baked permanently into the code.
+3. **`osmGreens`** (live OSM fetch) — no longer used for greens.
+   The `renderOSM` function skips green polygons entirely and instead
+   draws greens from `SURVEYED` data. OSM is only used for fairways,
+   bunkers, rough, and other non-green features.
 
 When the user pastes a new JSON export from the app's Export button:
 - Merge it into `SURVEYED` in `index.html`.
@@ -82,6 +83,17 @@ When the user pastes a new JSON export from the app's Export button:
   remove or alter holes not included in that export.
 - Keep the survey UI (`localStorage`, Front/Mid/Back buttons, Export)
   intact — the user intends to keep re-surveying holes over multiple
-  visits, even after data is baked in.
+  visits to improve accuracy, even though all 18 are already baked in.
 - After merging, hand back the updated `index.html` only — other
   files are unaffected by survey updates.
+
+## Map Rendering
+
+- Green polygons on the map are drawn from `SURVEYED` front/mid/back
+  points — NOT from OSM data. OSM green overlays were removed because
+  they didn't match the physical greens accurately.
+- OSM features outside the Howth Golf Club bounding box
+  (53.368–53.383 lat, -6.092– -6.070 lng) are filtered out to prevent
+  neighbouring course features appearing on the map.
+- Fairways, bunkers, rough, tees and water hazards from OSM are still
+  rendered for Howth only.
