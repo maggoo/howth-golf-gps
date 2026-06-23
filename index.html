@@ -610,61 +610,30 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20}).addTo(map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,opacity:.5}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  // Draw surveyed greens immediately — accurate positions from user's GPS walks
+
+  // Draw each green as a circle sized from the front-to-back distance
   Object.entries(SURVEYED).forEach(([n,d])=>{
-    const pts=[[d.front.lat,d.front.lng],[d.mid.lat,d.mid.lng],[d.back.lat,d.back.lng],[d.mid.lat,d.mid.lng]];
-    L.polygon(pts,{color:'rgba(74,222,128,.6)',weight:1.5,fillColor:'#22c55e',fillOpacity:.45}).addTo(map);
-    L.marker([d.mid.lat,d.mid.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[19,19],iconAnchor:[9.5,9.5]})}).addTo(map);
+    const frontBack = hvs(d.front, d.back);
+    const radius = Math.max(6, frontBack / 2); // half the front-to-back as radius, min 6m
+    L.circle([d.mid.lat, d.mid.lng], {
+      radius: radius,
+      color:'rgba(74,222,128,.8)',
+      weight: 1.5,
+      fillColor:'#22c55e',
+      fillOpacity: .4
+    }).addTo(map);
+    // Hole number label
+    L.marker([d.mid.lat,d.mid.lng],{
+      icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[19,19],iconAnchor:[9.5,9.5]})
+    }).addTo(map);
   });
-  // Then fetch OSM for fairways, bunkers, rough etc (greens are skipped in renderOSM)
-  fetchOSM();
+
   if(pos) updDist();
+  document.getElementById('mapSt').textContent='';
 }
-async function fetchOSM(){
-  const q=`[out:json][timeout:30];(node["golf"](53.368,-6.102,53.383,-6.070);way["golf"](53.368,-6.102,53.383,-6.070););out body geom;`;
-  try{
-    const r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
-    const d=await r.json();renderOSM(d.elements);
-    document.getElementById('mapSt').textContent=d.elements.length+' features loaded';
-    setTimeout(()=>document.getElementById('mapSt').style.opacity='0',2500);
-  }catch(e){document.getElementById('mapSt').textContent='OSM load failed – satellite only';}
-}
-function renderOSM(els){
-  // Howth Golf Club bounding box — exclude anything outside this
-  const BOUNDS = {minLat:53.368, maxLat:53.383, minLng:-6.092, maxLng:-6.070};
-  function inBounds(lat,lng){return lat>BOUNDS.minLat&&lat<BOUNDS.maxLat&&lng>BOUNDS.minLng&&lng<BOUNDS.maxLng;}
+async function fetchOSM(){ /* OSM overlays removed — satellite imagery is cleaner */ }
+function renderOSM(els){ /* unused */ }
 
-  const cols={fairway:'#3a8a3a',rough:'#1a5c1a',bunker:'#c9a84c',tee:'#86efac',water_hazard:'#3b82f6',hole:'#2d6a2d'};
-  const ops={fairway:.35,rough:.22,bunker:.65,tee:.5,water_hazard:.55,hole:.25};
-
-  els.forEach(el=>{
-    const g=el.tags&&el.tags.golf; if(!g) return;
-    // Skip greens entirely — we draw them from surveyed data below
-    if(g==='green') return;
-    if(el.type==='way'&&el.geometry&&el.geometry.length>2){
-      // Check centroid is within Howth bounds
-      const lats=el.geometry.map(p=>p.lat), lngs=el.geometry.map(p=>p.lon);
-      const cLat=lats.reduce((a,b)=>a+b,0)/lats.length;
-      const cLng=lngs.reduce((a,b)=>a+b,0)/lngs.length;
-      if(!inBounds(cLat,cLng)) return;
-      const ll=el.geometry.map(p=>[p.lat,p.lon]);
-      L.polygon(ll,{color:'rgba(255,255,255,.1)',weight:1,fillColor:cols[g]||'#4a9a4a',fillOpacity:ops[g]||.25}).addTo(map);
-    }
-  });
-
-  // Draw greens from surveyed GPS coordinates — small circle around mid point
-  Object.entries(SURVEYED).forEach(([n,d])=>{
-    const mid=d.mid, front=d.front, back=d.back;
-    // Build an oval polygon front→mid→back→mid to represent green shape
-    const pts=[[front.lat,front.lng],[mid.lat,mid.lng],[back.lat,back.lng],[mid.lat,mid.lng]];
-    L.polygon(pts,{color:'rgba(74,222,128,.6)',weight:1.5,fillColor:'#22c55e',fillOpacity:.45}).addTo(map);
-    // Hole number label at mid
-    L.marker([mid.lat,mid.lng],{icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[19,19],iconAnchor:[9.5,9.5]})}).addTo(map);
-  });
-
-  if(pos&&!meMarker) meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');
-  updDist(); updFMB();
-}
 function updateMeOnMap(){if(!map||!pos)return;if(!meMarker)meMarker=L.marker([pos.lat,pos.lng],{icon:mkIcon('me-dot',14)}).addTo(map).bindPopup('You');else meMarker.setLatLng([pos.lat,pos.lng]);}
 function centerMe(){if(map&&pos)map.setView([pos.lat,pos.lng],17);else if(map)map.setView([53.3755,-6.0884],15);}
 
