@@ -611,18 +611,8 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,opacity:.5}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
 
-  // Draw each green as a circle sized from the front-to-back distance
+  // Draw hole number markers at each surveyed green mid point
   Object.entries(SURVEYED).forEach(([n,d])=>{
-    const frontBack = hvs(d.front, d.back);
-    const radius = Math.max(6, frontBack / 2); // half the front-to-back as radius, min 6m
-    L.circle([d.mid.lat, d.mid.lng], {
-      radius: radius,
-      color:'rgba(74,222,128,.8)',
-      weight: 1.5,
-      fillColor:'#22c55e',
-      fillOpacity: .4
-    }).addTo(map);
-    // Hole number label
     L.marker([d.mid.lat,d.mid.lng],{
       icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[19,19],iconAnchor:[9.5,9.5]})
     }).addTo(map);
