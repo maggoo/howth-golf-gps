@@ -7,9 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d2b0d">
 <meta name="format-detection" content="telephone=no">
-<title>Mags Hacks aRound</title>
+<title>HacksAround</title>
 <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-title" content="MagsHacks">
+<meta name="apple-mobile-web-app-title" content="HacksAround">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -182,7 +182,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 /* LEAFLET */
 .me-dot{width:14px;height:14px;background:var(--ok);border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 10px rgba(74,222,128,.6);}
-.hole-lbl{background:rgba(192,57,43,.9);color:#fff;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
+.hole-lbl{background:rgba(192,57,43,.95);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5);}
 
 /* TOAST */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(8,18,8,.95);border:1px solid var(--gold);border-radius:12px;padding:10px 18px;font-size:13px;color:var(--gold);letter-spacing:.04em;backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);}
@@ -192,7 +192,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <body>
 <div class="app">
   <div class="hdr">
-    <div><div class="logo">Mags Hacks <span>aRound</span></div><div class="cname">Howth Golf Club · Dublin</div></div>
+    <div><div class="logo">Hacks<span>Around</span></div><div class="cname">Howth Golf Club · Dublin</div></div>
     <div class="hdr-r">
       <div class="auto-badge off" id="surveyBadge" onclick="toggleSurvey()">SURVEY OFF</div>
       <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ON</div>
@@ -674,7 +674,7 @@ function initMap(){
   // Draw hole number markers at each surveyed green mid point
   Object.entries(SURVEYED).forEach(([n,d])=>{
     L.marker([d.mid.lat,d.mid.lng],{
-      icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[19,19],iconAnchor:[9.5,9.5]})
+      icon:L.divIcon({className:'',html:`<div class="hole-lbl">${n}</div>`,iconSize:[26,26],iconAnchor:[13,13]})
     }).addTo(map);
   });
 
