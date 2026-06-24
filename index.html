@@ -25,11 +25,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 /* HEADER */
 .hdr{padding:12px 16px 9px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.22);flex-shrink:0;}
-.logo{display:flex;flex-direction:column;align-items:center;gap:0;line-height:1;}
-.logo-hack{font-family:'Inter',sans-serif;font-size:15px;font-weight:900;letter-spacing:.18em;color:var(--gold);}
-.logo-round{font-family:'Inter',sans-serif;font-size:15px;font-weight:900;letter-spacing:.18em;color:var(--cream);}
-.logo-ball{width:22px;height:22px;position:relative;margin:1px 0;}
-.logo-ball svg{width:22px;height:22px;}
+.logo{display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1.1;}
+.logo-hack{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;letter-spacing:.12em;color:var(--gold);}
+.logo-round{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;letter-spacing:.06em;color:var(--cream);}
+.logo-round span{color:var(--gold);font-weight:900;}
 .cname{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
 .hdr-r{display:flex;align-items:center;gap:10px;}
 .gps-ind{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
@@ -195,25 +194,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <body>
 <div class="app">
   <div class="hdr">
-    <div style="display:flex;align-items:center;gap:10px;">
+    <div>
       <div class="logo">
         <div class="logo-hack">HACK</div>
-        <div class="logo-ball">
-          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Ball -->
-            <circle cx="11" cy="11" r="10" fill="white" stroke="rgba(200,200,200,0.4)" stroke-width="0.5"/>
-            <!-- Dimples -->
-            <circle cx="7.5" cy="8.5" r="1" fill="rgba(180,180,180,0.55)"/>
-            <circle cx="11" cy="7" r="1" fill="rgba(180,180,180,0.55)"/>
-            <circle cx="14.5" cy="8.5" r="1" fill="rgba(180,180,180,0.55)"/>
-            <circle cx="8.5" cy="12" r="1" fill="rgba(180,180,180,0.55)"/>
-            <circle cx="13.5" cy="12" r="1" fill="rgba(180,180,180,0.55)"/>
-            <circle cx="11" cy="15" r="1" fill="rgba(180,180,180,0.55)"/>
-            <!-- Letter a -->
-            <text x="11" y="13.5" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#0d2b0d">a</text>
-          </svg>
-        </div>
-        <div class="logo-round">ROUND</div>
+        <div class="logo-round"><span>a</span>ROUND</div>
       </div>
       <div class="cname">Howth Golf Club · Dublin</div>
     </div>
