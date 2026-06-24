@@ -1,6 +1,6 @@
 {
-  "name": "HacksAround",
-  "short_name": "HacksAround",
+  "name": "Hack Around",
+  "short_name": "Hack Around",
   "description": "GPS caddie for Howth Golf Club, Dublin.",
   "start_url": "https://maggoo.github.io/howth-golf-gps/",
   "scope": "https://maggoo.github.io/howth-golf-gps/",
