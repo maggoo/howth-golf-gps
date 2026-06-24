@@ -7,9 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d2b0d">
 <meta name="format-detection" content="telephone=no">
-<title>GolfLine – Howth</title>
+<title>Mags Hacks Around</title>
 <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-title" content="GolfLine">
+<meta name="apple-mobile-web-app-title" content="MagsHacks">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -96,6 +96,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .survey-default{color:var(--ok);font-size:11px;letter-spacing:.06em;}
 .survey-override{color:#f5c842;font-size:11px;letter-spacing:.06em;font-weight:600;}
 .survey-partial{color:#fb923c;font-size:11px;letter-spacing:.06em;}
+.survey-menu-wrap{position:relative;}
+.survey-dots{background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--muted);font-size:14px;padding:2px 8px;cursor:pointer;letter-spacing:2px;line-height:1;}
+.survey-dots:hover{border-color:var(--gold);color:var(--gold);}
+.survey-dropdown{position:absolute;right:0;top:calc(100% + 6px);background:#0f2e0f;border:1px solid var(--gold);border-radius:10px;padding:6px;z-index:999;white-space:nowrap;}
+.survey-dropdown button{display:block;width:100%;padding:9px 14px;background:transparent;border:none;color:var(--cream);font-family:'DM Mono',monospace;font-size:12px;text-align:left;cursor:pointer;border-radius:7px;}
+.survey-dropdown button:hover{background:rgba(201,168,76,.12);color:var(--gold);}
 .survey-row{display:flex;gap:6px;}
 .sbtn{flex:1;padding:10px 4px;border-radius:9px;border:2px solid rgba(201,168,76,.3);background:transparent;color:var(--cream);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .sbtn.marked{border-color:var(--ok);color:var(--ok);background:rgba(74,222,128,.07);}
@@ -186,8 +192,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <body>
 <div class="app">
   <div class="hdr">
-    <div><div class="logo">Golf<span>Line</span></div><div class="cname">Howth Golf Club · Dublin</div></div>
+    <div><div class="logo">Mags <span>Hacks</span></div><div class="cname">Howth Golf Club · Dublin</div></div>
     <div class="hdr-r">
+      <div class="auto-badge" id="surveyBadge" onclick="toggleSurvey()">SURVEY OFF</div>
       <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ON</div>
       <div class="gps-ind"><div class="dot" id="gpsDot"></div><span>GPS</span></div>
     </div>
@@ -232,10 +239,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="fmb-card fmb-mid"><div class="fmb-lbl">Middle</div><div class="fmb-val" id="fmbM">—</div></div>
       <div class="fmb-card"><div class="fmb-lbl">Back</div><div class="fmb-val" id="fmbB">—</div></div>
     </div>
+    <div id="surveyPanel" style="display:none;width:100%;">
     <div class="survey-wrap">
-      <div class="survey-title">
-        Hole <span id="surveyHole">1</span> &nbsp;
-        <span id="surveyStatus" class="survey-default">Default</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="survey-title">
+          Hole <span id="surveyHole">1</span> &nbsp;
+          <span id="surveyStatus" class="survey-default">Default Positions</span>
+        </div>
+        <div class="survey-menu-wrap">
+          <button class="survey-dots" onclick="toggleSurveyMenu()">&#8226;&#8226;&#8226;</button>
+          <div class="survey-dropdown" id="surveyDropdown" style="display:none;">
+            <button onclick="exportSurvey();toggleSurveyMenu()">Export override data</button>
+          </div>
+        </div>
       </div>
       <div class="survey-row">
         <button class="sbtn" id="sbF" onclick="surveyMark('front')"><span class="sicon" id="siF">○</span> Front</button>
@@ -243,10 +259,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <button class="sbtn" id="sbB" onclick="surveyMark('back')"><span class="sicon" id="siB">○</span> Back</button>
       </div>
       <div class="survey-acts">
-        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Reset to Default</button>
-        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="exportSurvey()">Export</button>
+        <button class="pbtn sec" style="font-size:12px;padding:8px 10px;" onclick="clearSurvey()">Reset</button>
         <button class="pbtn sec" onclick="nextHole()">Next &rarr;</button>
       </div>
+    </div>
     </div>
     <div class="tee-row">
       <div class="tc active" id="tcW" onclick="selTee('white')"><div class="tdot white"></div><div class="tdist" id="dW">—</div><div class="tlbl">White</div></div>
@@ -345,7 +361,7 @@ const SURVEYED = {
 const EST = {};
 
 // State
-let pos=null,unit='metres',hole=0,tee='white';
+let pos=null,unit=localStorage.getItem('mags_unit')||'metres',hole=0,tee='white';
 let autoEnabled=true,modalPending=false,lastAutoPrompt=-1;
 let scores=new Array(18).fill(null);
 let map=null,meMarker=null,routeLine=null;
@@ -448,7 +464,14 @@ function selHole(idx,quiet=false){
 function nextHole(){if(hole<17)selHole(hole+1);else showToast('🏁 Round complete!');}
 function updTeeCards(){const h=HOLES[hole],f=m=>unit==='metres'?m+'m':Math.round(m*1.09361)+'y';document.getElementById('dW').textContent=f(h.w);document.getElementById('dY').textContent=f(h.y);document.getElementById('dR').textContent=f(h.r);}
 function selTee(t){tee=t;['white','yellow','red'].forEach(x=>document.getElementById('tc'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===t));}
-function setUnit(u){unit=u;document.getElementById('bM').classList.toggle('active',u==='metres');document.getElementById('bY').classList.toggle('active',u==='yards');document.getElementById('dUnit').textContent=u;updTeeCards();updDist();updFMB();}
+function setUnit(u){
+  unit=u;
+  localStorage.setItem('mags_unit',u);
+  document.getElementById('bM').classList.toggle('active',u==='metres');
+  document.getElementById('bY').classList.toggle('active',u==='yards');
+  document.getElementById('dUnit').textContent=u;
+  updTeeCards();updDist();updFMB();
+}
 
 // FMB
 function updFMB(){
@@ -568,6 +591,28 @@ function updDist(){
 
 // Auto-advance
 function toggleAuto(){autoEnabled=!autoEnabled;document.getElementById('autoBadge').textContent=autoEnabled?'AUTO ON':'AUTO OFF';document.getElementById('autoBadge').classList.toggle('off',!autoEnabled);showToast(autoEnabled?'Auto-advance ON':'Auto-advance OFF');}
+
+let surveyMode=false;
+function toggleSurvey(){
+  surveyMode=!surveyMode;
+  const badge=document.getElementById('surveyBadge');
+  const panel=document.getElementById('surveyPanel');
+  badge.textContent=surveyMode?'SURVEY ON':'SURVEY OFF';
+  badge.classList.toggle('off',!surveyMode);
+  panel.style.display=surveyMode?'block':'none';
+  if(surveyMode) updSurveyUI();
+  showToast(surveyMode?'Survey mode ON':'Survey mode OFF');
+}
+
+function toggleSurveyMenu(){
+  const dd=document.getElementById('surveyDropdown');
+  dd.style.display=dd.style.display==='none'?'block':'none';
+}
+// Close dropdown if tapping outside
+document.addEventListener('touchstart',e=>{
+  const dd=document.getElementById('surveyDropdown');
+  if(dd&&dd.style.display==='block'&&!dd.contains(e.target)&&!e.target.classList.contains('survey-dots')) dd.style.display='none';
+},{passive:true});
 function checkAutoAdvance(){
   if(!autoEnabled||!pos||modalPending||hole>=17)return;
   const g=osmGreens[hole+1];if(!g)return;
@@ -653,7 +698,26 @@ function setStatus(msg,type){const el=document.getElementById('sMsg');el.textCon
 let tt;function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
 
 selHole(0,true);
+// Apply saved unit preference to toggle buttons and display
+document.getElementById('bM').classList.toggle('active',unit==='metres');
+document.getElementById('bY').classList.toggle('active',unit==='yards');
+document.getElementById('dUnit').textContent=unit;
 startGPS();
+
+// ── WAKE LOCK — keep screen on while app is open ──────────────────────────
+let wakeLock=null;
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{
+    wakeLock=await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release',()=>{ wakeLock=null; });
+  }catch(e){ /* silently ignore if denied */ }
+}
+// Re-acquire wake lock when app becomes visible again (e.g. after phone unlock)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&!wakeLock) requestWakeLock();
+});
+requestWakeLock();
 
 // ── SWIPE GESTURES ────────────────────────────────────────────────────────
 // Swipe left = next hole, swipe right = previous hole

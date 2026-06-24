@@ -1,7 +1,7 @@
 {
-  "name": "GolfLine – Howth Golf Club",
-  "short_name": "GolfLine",
-  "description": "GPS caddie app for Howth Golf Club, Dublin.",
+  "name": "Mags Hacks Around",
+  "short_name": "MagsHacks",
+  "description": "GPS caddie for Howth Golf Club, Dublin. Mags Hacks.",
   "start_url": "https://maggoo.github.io/howth-golf-gps/",
   "scope": "https://maggoo.github.io/howth-golf-gps/",
   "display": "standalone",
