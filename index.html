@@ -281,7 +281,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <button class="ubtn active" id="bM" onclick="setUnit('metres')">Metres</button>
       <button class="ubtn" id="bY" onclick="setUnit('yards')">Yards</button>
     </div>
-    <div class="smsg" id="sMsg">Enable GPS to begin</div>
+    <div class="smsg" id="sMsg">
+      <button id="gpsStartBtn" onclick="startGPS()" style="background:var(--gold);color:var(--gd);border:none;border-radius:10px;padding:10px 24px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
+        Tap to Start GPS
+      </button>
+    </div>
   </div>
   <div class="panel map-panel" id="panelMap">
     <div class="map-status" id="mapSt">Loading course data…</div>
@@ -566,6 +570,9 @@ function exportSurvey(){
 
 // GPS
 function startGPS(){
+  // Hide the start button and replace with status text
+  const btn=document.getElementById('gpsStartBtn');
+  if(btn) btn.parentElement.innerHTML='Acquiring GPS…';
   if(!navigator.geolocation){setStatus('GPS not supported','err');return;}
   setStatus('Acquiring GPS…','');
   navigator.geolocation.watchPosition(p=>{
@@ -574,7 +581,9 @@ function startGPS(){
     updDist();updFMB();updateMeOnMap();checkAutoAdvance();
   },err=>{
     document.getElementById('gpsDot').className='dot err';
-    setStatus({1:'Location denied',2:'GPS lost',3:'Timeout'}[err.code]||'GPS error','err');
+    setStatus({1:'Location denied — check browser settings',2:'GPS lost',3:'Timeout — tap to retry'}[err.code]||'GPS error','err');
+    // Show retry button on error
+    document.getElementById('sMsg').innerHTML='<button id="gpsStartBtn" onclick="startGPS()" style="background:var(--red);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:\'Inter\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Retry GPS</button>';
   },{enableHighAccuracy:true,timeout:15000,maximumAge:2000});
 }
 function resetRing(){
@@ -706,11 +715,11 @@ function setStatus(msg,type){const el=document.getElementById('sMsg');el.textCon
 let tt;function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
 
 selHole(0,true);
-// Apply saved unit preference to toggle buttons and display
+// Apply saved unit preference
 document.getElementById('bM').classList.toggle('active',unit==='metres');
 document.getElementById('bY').classList.toggle('active',unit==='yards');
 document.getElementById('dUnit').textContent=unit;
-startGPS();
+// GPS starts when user taps the button — required for iOS Safari location prompt
 
 // ── WAKE LOCK — keep screen on while app is open ──────────────────────────
 let wakeLock=null;
