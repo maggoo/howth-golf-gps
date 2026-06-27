@@ -282,7 +282,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <button class="ubtn" id="bY" onclick="setUnit('yards')">Yards</button>
     </div>
     <div class="smsg" id="sMsg">
-      <button id="gpsStartBtn" onclick="startGPS()" style="background:var(--gold);color:var(--gd);border:none;border-radius:10px;padding:10px 24px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
+      <button id="gpsStartBtn" onclick="startGPS()" style="display:none;background:var(--gold);color:var(--gd);border:none;border-radius:10px;padding:10px 24px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
         Tap to Start GPS
       </button>
     </div>
@@ -569,22 +569,51 @@ function exportSurvey(){
 }
 
 // GPS
-function startGPS(){
-  // Hide the start button and replace with status text
+function showGPSButton(label,color){
   const btn=document.getElementById('gpsStartBtn');
-  if(btn) btn.parentElement.innerHTML='Acquiring GPS…';
+  if(btn){btn.textContent=label;btn.style.display='inline-block';btn.style.background=color||'var(--gold)';btn.style.color=color?'#fff':'var(--gd)';}
+}
+
+function startGPS(){
+  // Hide button if visible (user tapped it manually)
+  const btn=document.getElementById('gpsStartBtn');
+  if(btn) btn.style.display='none';
   if(!navigator.geolocation){setStatus('GPS not supported','err');return;}
   setStatus('Acquiring GPS…','');
-  navigator.geolocation.watchPosition(p=>{
+
+  const onSuccess=p=>{
     pos={lat:p.coords.latitude,lng:p.coords.longitude};
     document.getElementById('gpsDot').className='dot ok';
     updDist();updFMB();updateMeOnMap();checkAutoAdvance();
-  },err=>{
+  };
+
+  const onError=err=>{
     document.getElementById('gpsDot').className='dot err';
-    setStatus({1:'Location denied — check browser settings',2:'GPS lost',3:'Timeout — tap to retry'}[err.code]||'GPS error','err');
-    // Show retry button on error
-    document.getElementById('sMsg').innerHTML='<button id="gpsStartBtn" onclick="startGPS()" style="background:var(--red);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:\'Inter\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Retry GPS</button>';
-  },{enableHighAccuracy:true,timeout:15000,maximumAge:2000});
+    if(err.code===1){
+      // Permission denied — show tap button for iOS or settings message
+      setStatus('','');
+      showGPSButton('Tap to Enable GPS','var(--gold)');
+    } else if(err.code===3){
+      // Timeout — likely iOS blocking auto-start, show tap button
+      setStatus('','');
+      showGPSButton('Tap to Start GPS','var(--gold)');
+    } else {
+      setStatus('GPS signal lost','err');
+      showGPSButton('Retry GPS','#c0392b');
+    }
+  };
+
+  const opts={enableHighAccuracy:true,timeout:8000,maximumAge:2000};
+
+  // Try getCurrentPosition first — triggers iOS permission prompt on user tap,
+  // and works immediately on Android without any tap needed
+  navigator.geolocation.getCurrentPosition(p=>{
+    onSuccess(p);
+    // Start continuous watching after first fix
+    navigator.geolocation.watchPosition(onSuccess,err=>{
+      if(err.code!==3) onError(err);
+    },{enableHighAccuracy:true,maximumAge:2000});
+  }, onError, opts);
 }
 function resetRing(){
   document.getElementById('dVal').textContent='—';document.getElementById('dVal').className='dv loading';
@@ -719,7 +748,9 @@ selHole(0,true);
 document.getElementById('bM').classList.toggle('active',unit==='metres');
 document.getElementById('bY').classList.toggle('active',unit==='yards');
 document.getElementById('dUnit').textContent=unit;
-// GPS starts when user taps the button — required for iOS Safari location prompt
+// Try GPS automatically — works on Android immediately.
+// On iOS Safari it will timeout and show a tap button instead.
+startGPS();
 
 // ── WAKE LOCK — keep screen on while app is open ──────────────────────────
 let wakeLock=null;
