@@ -170,6 +170,39 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .sc-nine td{padding:7px 6px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.025);}
 .nine-v{font-family:'Inter',sans-serif;font-size:17px;font-weight:700;color:var(--cream);}
 
+/* CLUBS PANEL */
+.clubs-panel{display:none;flex-direction:column;overflow:hidden;}
+.clubs-panel.show{display:flex;}
+.shot-tracker{padding:14px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.shot-status{font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px;letter-spacing:.03em;}
+.shot-btns{display:flex;gap:8px;margin-bottom:8px;}
+.shot-btn{flex:1;padding:13px;border-radius:11px;border:2px solid;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.shot-btn.start{background:var(--gold);border-color:var(--gold);color:var(--gd);}
+.shot-btn.start.marked{background:rgba(74,222,128,.15);border-color:var(--ok);color:var(--ok);}
+.shot-btn.end{background:transparent;border-color:rgba(255,255,255,.2);color:var(--muted);}
+.shot-btn.end:not(:disabled){border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.shot-btn:disabled{opacity:.4;cursor:not-allowed;}
+.shot-dist{text-align:center;font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--gold);min-height:28px;}
+/* Club picker */
+.club-picker{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.club-picker-title{font-size:13px;font-weight:600;color:var(--cream);text-align:center;margin-bottom:10px;letter-spacing:.04em;}
+.club-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.club-btn{padding:10px 4px;border-radius:9px;border:1.5px solid rgba(201,168,76,.3);background:transparent;color:var(--cream);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.club-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.1);color:var(--gold);}
+.club-cancel{width:100%;padding:10px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;}
+/* Stats */
+.clubs-stats{flex:1;overflow-y:auto;padding-bottom:16px;}
+.clubs-stats-hdr{padding:10px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;background:var(--gd);z-index:10;}
+.clubs-stats-title{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--gold);}
+.clubs-table{width:100%;border-collapse:collapse;}
+.clubs-table th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);}
+.clubs-table td{padding:9px 6px;text-align:center;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05);}
+.clubs-table td:first-child{text-align:left;padding-left:12px;font-weight:600;color:var(--cream);}
+.clubs-table .avg{color:var(--gold);font-weight:700;font-size:15px;}
+.clubs-table .best{color:var(--ok);font-size:13px;}
+.clubs-table .cnt{color:var(--muted);font-size:12px;}
+.clubs-empty{text-align:center;padding:30px 20px;font-size:13px;color:var(--muted);line-height:1.8;}
+
 /* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s;}
 .modal-bg.show{opacity:1;pointer-events:all;}
@@ -222,6 +255,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="tab active" onclick="showTab('gps')">📍 GPS</div>
     <div class="tab" onclick="showTab('map')">🗺 Map</div>
     <div class="tab" onclick="showTab('card')">📋 Card</div>
+    <div class="tab" onclick="showTab('clubs')">🏌 Clubs</div>
   </div>
   <div class="hole-bar">
     <div class="hl">Hole</div>
@@ -322,8 +356,39 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <tbody id="scBody"></tbody>
     </table>
   </div>
+
+  <!-- CLUBS PANEL -->
+  <div class="panel clubs-panel" id="panelClubs">
+    <div class="shot-tracker">
+      <div class="shot-status" id="shotStatus">Stand at your ball and mark start</div>
+      <div class="shot-btns">
+        <button class="shot-btn start" id="shotStartBtn" onclick="markShotStart()">Mark Start</button>
+        <button class="shot-btn end" id="shotEndBtn" onclick="markShotEnd()" disabled>Mark End</button>
+      </div>
+      <div class="shot-dist" id="shotDist"></div>
+    </div>
+    <div class="club-picker" id="clubPicker" style="display:none;">
+      <div class="club-picker-title">Which club?</div>
+      <div class="club-grid" id="clubGrid"></div>
+      <button class="club-cancel" onclick="cancelShot()">Cancel</button>
+    </div>
+    <div class="clubs-stats">
+      <div class="clubs-stats-hdr">
+        <div class="clubs-stats-title">Club Distances</div>
+        <button class="reset-btn" onclick="resetClubData()">Reset All</button>
+      </div>
+      <table class="clubs-table">
+        <thead><tr>
+          <th style="text-align:left;padding-left:12px">Club</th>
+          <th>Avg</th><th>Best</th><th>Shots</th>
+        </tr></thead>
+        <tbody id="clubsBody"></tbody>
+      </table>
+      <div class="clubs-empty" id="clubsEmpty">No shots recorded yet.<br>Use the tracker above to log your distances.</div>
+    </div>
+  </div>
+
 </div>
-<div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-icon">⛳</div>
     <div class="modal-title">Hole Complete?</div>
@@ -508,7 +573,7 @@ function setUnit(u){
   document.getElementById('bM').classList.toggle('active',u==='metres');
   document.getElementById('bY').classList.toggle('active',u==='yards');
   document.getElementById('dUnit').textContent=u;
-  updTeeCards();updDist();updFMB();
+  updTeeCards();updDist();updFMB();updClubsTable();
 }
 
 // FMB
@@ -760,11 +825,86 @@ function updateMeOnMap(){if(!map||!pos)return;if(!meMarker)meMarker=L.marker([po
 function centerMe(){if(map&&pos)map.setView([pos.lat,pos.lng],17);else if(map)map.setView([53.3755,-6.0884],15);}
 
 // Tabs
+// ── SHOT TRACKER & CLUB DISTANCES ─────────────────────────────────────────
+const CLUBS=['Driver','3 Wood','5 Wood','4 Iron','5 Iron','6 Iron','7 Iron','8 Iron','9 Iron','PW','SW','LW','Putter'];
+const CLUBS_KEY='mags_clubs_v1';
+let shotStart=null,pendingDist=null,clubData={};
+
+function loadClubData(){try{clubData=JSON.parse(localStorage.getItem(CLUBS_KEY)||'{}')}catch(e){clubData={};}}
+function saveClubData(){try{localStorage.setItem(CLUBS_KEY,JSON.stringify(clubData))}catch(e){}}
+loadClubData();
+
+// Build club picker grid
+const cg=document.getElementById('clubGrid');
+CLUBS.forEach(c=>{
+  const b=document.createElement('button');b.className='club-btn';b.textContent=c;
+  b.onclick=()=>recordShot(c);cg.appendChild(b);
+});
+
+function markShotStart(){
+  if(!pos){showToast('Waiting for GPS…');return;}
+  shotStart={...pos};
+  document.getElementById('shotStartBtn').classList.add('marked');
+  document.getElementById('shotStartBtn').textContent='Start Marked ✓';
+  document.getElementById('shotEndBtn').disabled=false;
+  document.getElementById('shotStatus').textContent='Walk to where it landed and mark end';
+  document.getElementById('shotDist').textContent='';
+}
+function markShotEnd(){
+  if(!pos||!shotStart){showToast('Mark start first');return;}
+  const m=hvs(shotStart,pos);pendingDist=m;
+  document.getElementById('shotDist').textContent=fmtU(m)+' — select club below';
+  document.getElementById('shotStatus').textContent='Great shot! Which club?';
+  document.getElementById('clubPicker').style.display='block';
+}
+function recordShot(club){
+  if(!pendingDist)return;
+  if(!clubData[club])clubData[club]=[];
+  clubData[club].push({dist:Math.round(pendingDist),hole:hole+1,date:Date.now()});
+  saveClubData();
+  document.getElementById('clubPicker').style.display='none';
+  resetShotTracker();updClubsTable();
+  showToast(`${club} — ${fmtU(pendingDist)} recorded`);
+  pendingDist=null;
+}
+function cancelShot(){
+  document.getElementById('clubPicker').style.display='none';
+  pendingDist=null;resetShotTracker();
+}
+function resetShotTracker(){
+  shotStart=null;
+  document.getElementById('shotStartBtn').classList.remove('marked');
+  document.getElementById('shotStartBtn').textContent='Mark Start';
+  document.getElementById('shotEndBtn').disabled=true;
+  document.getElementById('shotStatus').textContent='Stand at your ball and mark start';
+  document.getElementById('shotDist').textContent='';
+}
+function updClubsTable(){
+  const body=document.getElementById('clubsBody');body.innerHTML='';
+  const empty=document.getElementById('clubsEmpty');
+  const active=CLUBS.filter(c=>clubData[c]&&clubData[c].length>0);
+  if(!active.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  const u=unit==='metres'?'m':'y';
+  active.forEach(c=>{
+    const dists=clubData[c].map(s=>unit==='metres'?s.dist:Math.round(s.dist*1.09361));
+    const avg=Math.round(dists.reduce((a,b)=>a+b,0)/dists.length);
+    const best=Math.max(...dists);
+    const tr=body.insertRow();
+    tr.innerHTML=`<td>${c}</td><td class="avg">${avg}${u}</td><td class="best">${best}${u}</td><td class="cnt">${clubData[c].length}</td>`;
+  });
+}
+function resetClubData(){
+  if(!confirm('Reset all club distance data?'))return;
+  clubData={};saveClubData();updClubsTable();showToast('Club data reset');
+}
+
 function showTab(t){
-  ['gps','map','card'].forEach(x=>document.getElementById('panel'+x[0].toUpperCase()+x.slice(1)).classList.toggle('show',x===t));
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['gps','map','card'][i]===t));
+  ['gps','map','card','clubs'].forEach(x=>document.getElementById('panel'+x[0].toUpperCase()+x.slice(1)).classList.toggle('show',x===t));
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['gps','map','card','clubs'][i]===t));
   if(t==='map'){initMap();setTimeout(()=>map&&map.invalidateSize(),60);}
   if(t==='card'){const r=document.getElementById('row'+hole);r&&r.scrollIntoView({behavior:'smooth',block:'center'});}
+  if(t==='clubs'){updClubsTable();}
 }
 function setStatus(msg,type){const el=document.getElementById('sMsg');el.textContent=msg;el.className='smsg'+(type?' '+type:'');}
 let tt;function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
