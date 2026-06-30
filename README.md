@@ -1,52 +1,93 @@
-# ⛳ GolfLine – Howth Golf Club GPS
+# ⛳ HackAround — Howth Golf Club GPS
 
-A progressive web app (PWA) GPS caddie for **Howth Golf Club, Dublin**.
+A progressive web app (PWA) GPS caddie built specifically for **Howth Golf Club, Dublin**.
+
+Live at: **https://maggoo.github.io/howth-golf-gps/**
+
+---
 
 ## Features
 
-- 📍 **Live GPS distance** to green — works the moment you open it, no setup needed
-- 📐 **Front / Middle / Back** distances to each green
-- 🗺 **Satellite course map** with OSM fairway, green, bunker and rough overlays, plus a live routing line from your position to the green
-- 📋 **Full scorecard** — all 18 holes with colour-coded scoring (eagle/birdie/par/bogey), front 9, back 9 and total vs par
-- ⛳ **Auto hole advance** — prompts when you get within 30m of the green
-- 📍 **Survey mode** — walk each green and mark Front / Mid / Back to save precise GPS coordinates, permanently replacing the estimated positions
-- 📤 **Export survey data** — copy your surveyed green positions and send to update the app permanently
-- 🏌️ White / Yellow / Red tee distances for all 18 holes (metres or yards)
+### 📍 GPS Distance
+- Live distance to the current hole's green, updated continuously as you walk
+- **Front / Middle / Back** distances calculated from GPS-surveyed green positions
+- All 18 greens have been physically walked and surveyed for accuracy
+- Distances shown in metres or yards (preference saved between sessions)
 
-## How to Use
+### 🗺 Course Map
+- Satellite imagery of Howth Golf Club
+- Numbered red pins at each green's surveyed position
+- Live routing line from your position to the current green
+- Your position updates in real time as you walk
 
-### Distance
-Open the app — GPS locks and immediately shows distance to the current hole's green. No marking needed.
+### 📋 Scorecard
+- Full 18-hole scorecard with hole names, par, and stroke index
+- Colour-coded scoring: eagle (gold), birdie (green), par (white), bogey (orange), double+ (red)
+- Front 9, Back 9, and total vs par summaries
+- Persists during your round
 
-### Survey a Green (one-time, improves accuracy permanently)
-1. Walk to the **front edge** of the green → tap **Front**
-2. Walk to the **middle** → tap **Mid**
-3. Walk to the **back edge** → tap **Back**
-4. The hole button glows green — distances now use your real positions
-5. Tap **Export** to copy the data and send it for a permanent app update
+### 🏌 Club Distances
+- Shot tracker: mark start, walk to where it landed, mark end
+- Select the club you used — distance is recorded
+- Builds lifetime averages per club across all rounds
+- Shows average, best, and number of shots per club
+- Data persists in localStorage across all sessions
 
-### Scorecard
-Tap the 📋 Card tab. Enter your score for each hole — colour coding updates automatically.
+### 📍 Location Sync
+- When you unlock your phone, the app re-acquires GPS and checks which green you're closest to
+- If you've played several holes without checking the app, it automatically prompts to switch to the right hole
+- Works across all 18 holes, not just the next one
 
-### Auto-Advance
-The **AUTO** badge in the top right is on by default. When you walk within 30m of the green it asks if you want to advance to the next hole. Tap to disable if you prefer manual control.
+### 🔍 Survey Mode
+- Tap **SURVEY** in the header to enable
+- Walk to Front / Mid / Back of any green and tap to record the GPS position
+- Overrides the baked-in default positions for that hole
+- Tap **Export** (via ··· menu) to export your new readings
+- Hidden by default during normal play
+
+---
+
+## Scorecard Data
+
+| Tee | Total | Par |
+|-----|-------|-----|
+| White | 5,700m | 71 |
+| Yellow | 5,437m | 71 |
+| Red (Ladies) | 4,943m | 72 |
+
+Hole 3 (Bloody Stream) is par 4 for men, par 5 for ladies.
+
+Holes in order: Ireland's Eye, Aideens, Bloody Stream, Knocknabohill, Summit, Black Linn, Baily, St. Fintan's, Rockabill, Ui Maine, Ben Edar, The Tank, Carrickbrack, DublinBay, Farnan's, Shielmartin, Cottage, Hog's Back.
+
+---
+
+## Navigation
+
+- **Swipe left** — next hole
+- **Swipe right** — previous hole
+- Tap hole number circles to jump to any hole directly
+
+---
 
 ## Install on Android
 1. Open `https://maggoo.github.io/howth-golf-gps/` in **Chrome**
-2. Tap ⋮ → **Add to Home Screen**
-3. Allow location when prompted
+2. An install banner will appear — tap **Install**
+3. Or tap ⋮ → **Add to Home Screen**
+4. Allow location when prompted
+5. Tap **Tap to Start GPS** if GPS doesn't start automatically
 
 ## Install on iPhone
-1. Open the URL in **Safari**
-2. Tap Share → **Add to Home Screen**
-
-## Getting Updates
-After new files are pushed to GitHub, the installed app updates **automatically in the background** within 24 hours. You don't need to uninstall and reinstall. To force an immediate update, open the URL in Chrome (not the installed app) and hard reload.
-
-## Course Data
-Scorecard from the official Howth Golf Club scorecard — White/Yellow/Red tees, par 71.
-Green positions seeded from OpenStreetMap, refined by the in-app survey system.
-Map imagery from Esri satellite. Course overlays from OpenStreetMap via Overpass API.
+1. Open the URL in **Safari** (not Chrome)
+2. Tap the Share button → **Add to Home Screen**
+3. Open the app and tap **Tap to Start GPS**
+4. Allow location access when prompted
+5. If denied previously: Settings → Privacy → Location Services → Safari → While Using App
 
 ---
-*Built with Leaflet · Esri · OpenStreetMap*
+
+## Getting Updates
+After changes are pushed to GitHub, the installed app updates automatically in the background within ~24 hours. To force an update, open the URL directly in Chrome and hard reload.
+
+---
+
+*Built with Leaflet · Esri satellite imagery · Vanilla JS · GitHub Pages*

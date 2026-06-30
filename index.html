@@ -247,7 +247,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     </div>
     <div class="hdr-r">
       <div class="auto-badge off" id="surveyBadge" onclick="toggleSurvey()">SURVEY OFF</div>
-      <div class="auto-badge" id="autoBadge" onclick="toggleAuto()">AUTO ON</div>
       <div class="gps-ind"><div class="dot" id="gpsDot"></div><span>GPS</span></div>
     </div>
   </div>
@@ -390,9 +389,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 </div>
   <div class="modal">
-    <div class="modal-icon">⛳</div>
-    <div class="modal-title">Hole Complete?</div>
-    <div class="modal-sub" id="modalSub">Advance to next hole?</div>
+    <div class="modal-icon">📍</div>
+    <div class="modal-title">Location Sync</div>
+    <div class="modal-sub" id="modalSub">Switching hole based on your location</div>
     <div class="modal-btns">
       <button class="mbtn cancel" onclick="dismissModal()">Stay</button>
       <button class="mbtn confirm" onclick="confirmNextHole()">Next Hole</button>
@@ -465,7 +464,7 @@ const EST = {};
 
 // State
 let pos=null,unit=localStorage.getItem('mags_unit')||'metres',hole=0,tee='white';
-let autoEnabled=true,modalPending=false,lastAutoPrompt=-1;
+let modalPending=false;
 let scores=new Array(18).fill(null);
 let map=null,meMarker=null,routeLine=null;
 let osmGreens={},osmGreenPolygons={};
@@ -675,7 +674,7 @@ function startGPS(){
   const onSuccess=p=>{
     pos={lat:p.coords.latitude,lng:p.coords.longitude};
     document.getElementById('gpsDot').className='dot ok';
-    updDist();updFMB();updateMeOnMap();checkAutoAdvance();
+    updDist();updFMB();updateMeOnMap();syncToLocation();
   };
 
   const onError=err=>{
@@ -727,9 +726,27 @@ function updDist(){
 }
 
 // Auto-advance
-function toggleAuto(){autoEnabled=!autoEnabled;document.getElementById('autoBadge').textContent=autoEnabled?'AUTO ON':'AUTO OFF';document.getElementById('autoBadge').classList.toggle('off',!autoEnabled);showToast(autoEnabled?'Auto-advance ON':'Auto-advance OFF');}
-
-let surveyMode=false;
+// ── LOCATION SYNC ─────────────────────────────────────────────────────────
+// Finds the closest green to current position across all 18 holes.
+// Called on GPS update and when screen wakes up.
+function syncToLocation(){
+  if(!pos||modalPending) return;
+  let closestHole=null, closestDist=Infinity;
+  for(let i=1;i<=18;i++){
+    const g=osmGreens[i]; if(!g) continue;
+    const d=hvs(pos,g);
+    if(d<closestDist){closestDist=d;closestHole=i;}
+  }
+  // Only prompt if within 40m of a green AND it's a different hole than current
+  if(closestHole&&closestDist<40&&closestHole!==hole+1){
+    modalPending=true;
+    document.getElementById('modalSub').innerHTML=
+      `You appear to be at hole <b>${closestHole}</b>.<br>Switch to that hole?`;
+    document.getElementById('modalBg').classList.add('show');
+    // Store which hole to switch to
+    document.getElementById('modalBg').dataset.targetHole=closestHole;
+  }
+}
 function toggleSurvey(){
   surveyMode=!surveyMode;
   const badge=document.getElementById('surveyBadge');
@@ -750,13 +767,13 @@ document.addEventListener('touchstart',e=>{
   const dd=document.getElementById('surveyDropdown');
   if(dd&&dd.style.display==='block'&&!dd.contains(e.target)&&!e.target.classList.contains('survey-dots')) dd.style.display='none';
 },{passive:true});
-function checkAutoAdvance(){
-  if(!autoEnabled||!pos||modalPending||hole>=17)return;
-  const g=osmGreens[hole+1];if(!g)return;
-  const d=hvs(pos,g);
-  if(d<30&&lastAutoPrompt!==hole){lastAutoPrompt=hole;modalPending=true;document.getElementById('modalSub').innerHTML=`You're ${Math.round(d)}m from the green.<br>Advance to hole <b>${hole+2}</b>?`;document.getElementById('modalBg').classList.add('show');}
+let surveyMode=false;
+
+function confirmNextHole(){
+  dismissModal();
+  const target=parseInt(document.getElementById('modalBg').dataset.targetHole||hole+2);
+  selHole(target-1);
 }
-function confirmNextHole(){dismissModal();nextHole();}
 function dismissModal(){document.getElementById('modalBg').classList.remove('show');modalPending=false;}
 
 // Scorecard
@@ -956,8 +973,20 @@ async function requestWakeLock(){
   }catch(e){ /* silently ignore if denied */ }
 }
 // Re-acquire wake lock when app becomes visible again (e.g. after phone unlock)
+// Re-acquire GPS and sync hole when screen wakes from lock
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&!wakeLock) requestWakeLock();
+  if(document.visibilityState==='visible'){
+    if(!wakeLock) requestWakeLock();
+    // Re-fetch GPS position immediately and sync to closest hole
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(p=>{
+        pos={lat:p.coords.latitude,lng:p.coords.longitude};
+        document.getElementById('gpsDot').className='dot ok';
+        updDist();updFMB();updateMeOnMap();
+        syncToLocation();
+      },()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:5000});
+    }
+  }
 });
 requestWakeLock();
 
