@@ -9,10 +9,10 @@ Live at: **https://maggoo.github.io/howth-golf-gps/**
 ## Features
 
 ### 📍 GPS Distance
-- Live distance to the current hole's green, updated continuously as you walk
-- **Front / Middle / Back** distances calculated from GPS-surveyed green positions
-- All 18 greens have been physically walked and surveyed for accuracy
-- Distances shown in metres or yards (preference saved between sessions)
+- Live distance to the current hole's green, updated continuously as you walk. 
+- **Front / Middle / Back** distances calculated from GPS-surveyed green positions. 
+- All 18 greens have been physically walked and surveyed for accuracy. 
+- Distances shown in metres or yards (preference saved between sessions). 
 
 ### 🗺 Course Map
 - Satellite imagery of Howth Golf Club
