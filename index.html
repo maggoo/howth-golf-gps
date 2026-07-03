@@ -694,15 +694,20 @@ function startGPS(){
   };
 
   const opts={enableHighAccuracy:true,timeout:8000,maximumAge:2000};
+  let watchId=null;
+
+  const startWatch=()=>{
+    if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+    watchId=navigator.geolocation.watchPosition(onSuccess,err=>{
+      if(err.code!==3) onError(err);
+    },{enableHighAccuracy:true,maximumAge:2000});
+  };
 
   // Try getCurrentPosition first — triggers iOS permission prompt on user tap,
   // and works immediately on Android without any tap needed
   navigator.geolocation.getCurrentPosition(p=>{
     onSuccess(p);
-    // Start continuous watching after first fix
-    navigator.geolocation.watchPosition(onSuccess,err=>{
-      if(err.code!==3) onError(err);
-    },{enableHighAccuracy:true,maximumAge:2000});
+    startWatch();
   }, onError, opts);
 }
 function resetRing(){
@@ -737,14 +742,13 @@ function syncToLocation(){
     const d=hvs(pos,g);
     if(d<closestDist){closestDist=d;closestHole=i;}
   }
-  // Only prompt if within 40m of a green AND it's a different hole than current
-  if(closestHole&&closestDist<40&&closestHole!==hole+1){
+  // Prompt if within 80m of a green AND it's a different hole than current
+  if(closestHole&&closestDist<80&&closestHole!==hole+1){
     modalPending=true;
     document.getElementById('modalSub').innerHTML=
-      `You appear to be at hole <b>${closestHole}</b>.<br>Switch to that hole?`;
-    document.getElementById('modalBg').classList.add('show');
-    // Store which hole to switch to
+      `You appear to be at hole <b>${closestHole}</b> (${Math.round(closestDist)}m from green).<br>Switch to that hole?`;
     document.getElementById('modalBg').dataset.targetHole=closestHole;
+    document.getElementById('modalBg').classList.add('show');
   }
 }
 function toggleSurvey(){
@@ -963,32 +967,20 @@ window.addEventListener('appinstalled',()=>{
   showToast('HackaRound installed!');
 });
 
-// ── WAKE LOCK ─────────────────────────────────────────────────────────────
-let wakeLock=null;
-async function requestWakeLock(){
-  if(!('wakeLock' in navigator)) return;
-  try{
-    wakeLock=await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release',()=>{ wakeLock=null; });
-  }catch(e){ /* silently ignore if denied */ }
-}
-// Re-acquire wake lock when app becomes visible again (e.g. after phone unlock)
-// Re-acquire GPS and sync hole when screen wakes from lock
+// ── SCREEN WAKE HANDLER ───────────────────────────────────────────────────
+// When phone is unlocked, nudge GPS for a fresh fix and sync to closest hole.
+// The existing watchPosition continues running — this just forces an immediate
+// fresh reading to unstick any stale position after the screen was off.
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){
-    if(!wakeLock) requestWakeLock();
-    // Re-fetch GPS position immediately and sync to closest hole
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(p=>{
-        pos={lat:p.coords.latitude,lng:p.coords.longitude};
-        document.getElementById('gpsDot').className='dot ok';
-        updDist();updFMB();updateMeOnMap();
-        syncToLocation();
-      },()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:5000});
-    }
+  if(document.visibilityState==='visible'&&navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{
+      pos={lat:p.coords.latitude,lng:p.coords.longitude};
+      document.getElementById('gpsDot').className='dot ok';
+      updDist();updFMB();updateMeOnMap();
+      syncToLocation();
+    },()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:0});
   }
 });
-requestWakeLock();
 
 // ── SWIPE GESTURES ────────────────────────────────────────────────────────
 // Swipe left = next hole, swipe right = previous hole
