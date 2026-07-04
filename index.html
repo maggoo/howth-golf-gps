@@ -203,18 +203,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .clubs-table .cnt{color:var(--muted);font-size:12px;}
 .clubs-empty{text-align:center;padding:30px 20px;font-size:13px;color:var(--muted);line-height:1.8;}
 
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s;}
-.modal-bg.show{opacity:1;pointer-events:all;}
-.modal{background:linear-gradient(145deg,#0f2e0f,#0a1f0a);border:1px solid var(--gold);border-radius:16px;padding:24px 20px;max-width:300px;width:90%;text-align:center;}
-.modal-icon{font-size:36px;margin-bottom:10px;}
-.modal-title{font-family:'Inter',sans-serif;font-size:20px;color:var(--gold);margin-bottom:6px;}
-.modal-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:18px;}
-.modal-btns{display:flex;gap:10px;}
-.mbtn{flex:1;padding:12px;border-radius:10px;border:none;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
-.mbtn.confirm{background:var(--gold);color:var(--gd);font-weight:600;}
-.mbtn.cancel{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.15);}
-
 /* LEAFLET */
 .me-dot{width:14px;height:14px;background:var(--ok);border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 10px rgba(74,222,128,.6);}
 .hole-lbl{background:rgba(192,57,43,.95);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5);}
@@ -388,16 +376,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   </div>
 
 </div>
-  <div class="modal">
-    <div class="modal-icon">📍</div>
-    <div class="modal-title">Location Sync</div>
-    <div class="modal-sub" id="modalSub">Switching hole based on your location</div>
-    <div class="modal-btns">
-      <button class="mbtn cancel" onclick="dismissModal()">Stay</button>
-      <button class="mbtn confirm" onclick="confirmNextHole()">Next Hole</button>
-    </div>
-  </div>
-</div>
 <!-- INSTALL BANNER -->
 <div class="install-banner" id="installBanner">
   <div class="install-banner-text">
@@ -464,7 +442,6 @@ const EST = {};
 
 // State
 let pos=null,unit=localStorage.getItem('mags_unit')||'metres',hole=0,tee='white';
-let modalPending=false;
 let scores=new Array(18).fill(null);
 let map=null,meMarker=null,routeLine=null;
 let osmGreens={},osmGreenPolygons={};
@@ -674,7 +651,7 @@ function startGPS(){
   const onSuccess=p=>{
     pos={lat:p.coords.latitude,lng:p.coords.longitude};
     document.getElementById('gpsDot').className='dot ok';
-    updDist();updFMB();updateMeOnMap();syncToLocation();
+    updDist();updFMB();updateMeOnMap();
   };
 
   const onError=err=>{
@@ -732,25 +709,6 @@ function updDist(){
 
 // Auto-advance
 // ── LOCATION SYNC ─────────────────────────────────────────────────────────
-// Finds the closest green to current position across all 18 holes.
-// Called on GPS update and when screen wakes up.
-function syncToLocation(){
-  if(!pos||modalPending) return;
-  let closestHole=null, closestDist=Infinity;
-  for(let i=1;i<=18;i++){
-    const g=osmGreens[i]; if(!g) continue;
-    const d=hvs(pos,g);
-    if(d<closestDist){closestDist=d;closestHole=i;}
-  }
-  // Prompt if within 80m of a green AND it's a different hole than current
-  if(closestHole&&closestDist<80&&closestHole!==hole+1){
-    modalPending=true;
-    document.getElementById('modalSub').innerHTML=
-      `You appear to be at hole <b>${closestHole}</b> (${Math.round(closestDist)}m from green).<br>Switch to that hole?`;
-    document.getElementById('modalBg').dataset.targetHole=closestHole;
-    document.getElementById('modalBg').classList.add('show');
-  }
-}
 function toggleSurvey(){
   surveyMode=!surveyMode;
   const badge=document.getElementById('surveyBadge');
@@ -772,13 +730,6 @@ document.addEventListener('touchstart',e=>{
   if(dd&&dd.style.display==='block'&&!dd.contains(e.target)&&!e.target.classList.contains('survey-dots')) dd.style.display='none';
 },{passive:true});
 let surveyMode=false;
-
-function confirmNextHole(){
-  dismissModal();
-  const target=parseInt(document.getElementById('modalBg').dataset.targetHole||hole+2);
-  selHole(target-1);
-}
-function dismissModal(){document.getElementById('modalBg').classList.remove('show');modalPending=false;}
 
 // Scorecard
 function scoreEntry(idx,input){
@@ -977,7 +928,6 @@ document.addEventListener('visibilitychange',()=>{
       pos={lat:p.coords.latitude,lng:p.coords.longitude};
       document.getElementById('gpsDot').className='dot ok';
       updDist();updFMB();updateMeOnMap();
-      syncToLocation();
     },()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:0});
   }
 });
