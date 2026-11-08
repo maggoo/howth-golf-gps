@@ -97,3 +97,12 @@ When the user pastes a new JSON export from the app's Export button:
   neighbouring course features appearing on the map.
 - Fairways, bunkers, rough, tees and water hazards from OSM are still
   rendered for Howth only.
+
+## GPS Start Button Gotcha (iOS)
+
+The "Tap to Start GPS" button (`#gpsStartBtn`) lives in `#gpsBtnWrap`,
+OUTSIDE the status text element `#sMsg`. `setStatus()` replaces the
+text of `#sMsg`, so the button must never be placed inside it (it was
+once, which silently deleted the button and left iPhones with no way to
+start GPS). iOS Safari needs a user tap to reliably show the location
+permission prompt; Android starts GPS automatically on load.

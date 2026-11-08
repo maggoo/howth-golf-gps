@@ -313,8 +313,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <button class="ubtn active" id="bM" onclick="setUnit('metres')">Metres</button>
       <button class="ubtn" id="bY" onclick="setUnit('yards')">Yards</button>
     </div>
-    <div class="smsg" id="sMsg">
-      <button id="gpsStartBtn" onclick="startGPS()" style="display:none;background:var(--gold);color:var(--gd);border:none;border-radius:10px;padding:10px 24px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
+    <div class="smsg" id="sMsg"></div>
+    <div id="gpsBtnWrap" style="text-align:center;width:100%;">
+      <button id="gpsStartBtn" onclick="startGPS()" style="display:none;background:var(--gold);color:var(--gd);border:none;border-radius:10px;padding:12px 28px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
         Tap to Start GPS
       </button>
     </div>
@@ -653,28 +654,27 @@ function startGPS(){
   const onSuccess=p=>{
     pos={lat:p.coords.latitude,lng:p.coords.longitude};
     document.getElementById('gpsDot').className='dot ok';
+    const b=document.getElementById('gpsStartBtn'); if(b) b.style.display='none';
     updDist();updFMB();updateMeOnMap();
   };
 
+  // Errors now show a visible message AND a button (the button lives outside
+  // the status text, so setStatus can no longer delete it)
   const onError=err=>{
     document.getElementById('gpsDot').className='dot err';
     if(err.code===1){
-      // Permission denied — show tap button for iOS or settings message
-      setStatus('','');
+      setStatus('Location is blocked. On iPhone: Settings > Privacy & Security > Location Services > Safari Websites > While Using the App. Then tap below.','err');
       showGPSButton('Tap to Enable GPS','var(--gold)');
     } else if(err.code===3){
-      // Timeout — likely iOS blocking auto-start, show tap button
-      setStatus('','');
+      setStatus('GPS is taking a while. Tap below to try again.','err');
       showGPSButton('Tap to Start GPS','var(--gold)');
     } else {
-      setStatus('GPS signal lost','err');
+      setStatus('Could not get a GPS fix. Tap below to retry.','err');
       showGPSButton('Retry GPS','#c0392b');
     }
   };
 
-  const opts={enableHighAccuracy:true,timeout:8000,maximumAge:2000};
   let watchId=null;
-
   const startWatch=()=>{
     if(watchId!==null) navigator.geolocation.clearWatch(watchId);
     watchId=navigator.geolocation.watchPosition(onSuccess,err=>{
@@ -682,12 +682,21 @@ function startGPS(){
     },{enableHighAccuracy:true,maximumAge:2000});
   };
 
-  // Try getCurrentPosition first — triggers iOS permission prompt on user tap,
-  // and works immediately on Android without any tap needed
+  // 15s timeout: iOS can count time spent on the permission prompt.
+  // If high accuracy times out or fails (not a permission denial), retry once
+  // with low accuracy before bothering the user.
+  const highOpts={enableHighAccuracy:true,timeout:15000,maximumAge:2000};
+  const lowOpts={enableHighAccuracy:false,timeout:15000,maximumAge:10000};
   navigator.geolocation.getCurrentPosition(p=>{
     onSuccess(p);
     startWatch();
-  }, onError, opts);
+  }, err=>{
+    if(err.code===1){ onError(err); return; }
+    navigator.geolocation.getCurrentPosition(p=>{
+      onSuccess(p);
+      startWatch();
+    }, onError, lowOpts);
+  }, highOpts);
 }
 function resetRing(){
   document.getElementById('dVal').textContent='—';document.getElementById('dVal').className='dv loading';
